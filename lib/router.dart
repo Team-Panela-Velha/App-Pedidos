@@ -1,3 +1,4 @@
+import 'package:app_pedidos/ui/screens/select_table.dart';
 import 'package:app_pedidos/ui/screens/splash_screen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -7,7 +8,7 @@ class AppRouter {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => SplashScreen(),
+        builder: (context, state) => SelectTable(),
       ),
     ],
   );
