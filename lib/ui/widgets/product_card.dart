@@ -14,55 +14,62 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 1000,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 🔥 Fundo só na imagem
-          Container(
-            height: 500,
-            width: double.infinity,
+  return SizedBox(
+    width: 1000,
+    height: 100, // importante pra alinhar altura
+    child: Row(
+      children: [
+        // IMAGEM
+        Expanded(
+          flex: 1,
+          child: Container(
             decoration: BoxDecoration(
               color: const Color(0xFFEDE3D9),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Center(
-              child: ClipRRect(
-  borderRadius: BorderRadius.circular(20),
-  child: Image.asset(
-    image,
-    width: double.infinity,
-    height: double.infinity,
-    fit: BoxFit.cover, // 🔥 ISSO resolve
-  ),
-)
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(
+                image,
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
+        ),
 
-          const SizedBox(height: 16),
+        const SizedBox(width: 20),
 
-          // Título
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+        // TEXTO
+        Expanded(
+          flex: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Text(
+                description,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+            ],
           ),
-
-          const SizedBox(height: 8),
-
-          // Descrição
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
+        ),
+      ],
+    ),
+  );
   }
 }
