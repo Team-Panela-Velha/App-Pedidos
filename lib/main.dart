@@ -1,4 +1,5 @@
 import 'package:app_pedidos/router.dart';
+import 'package:app_pedidos/theme/app_themes.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -12,10 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        primaryColor: Colors.pink,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: AppTheme.lightTheme,
       routerConfig: AppRouter.router,
     );
   }
