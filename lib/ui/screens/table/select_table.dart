@@ -1,4 +1,5 @@
 import 'package:app_pedidos/router.dart';
+import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:app_pedidos/ui/widgets/simple_button.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -37,7 +38,14 @@ class _SelectTableState extends State<SelectTable> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const FlutterLogo(size: 100),
+            ClipRRect(
+              child: Image.asset(
+                'images/logo.jpg',
+                width: 220,
+                height: 220,
+                fit: BoxFit.cover,
+              ),
+            ),
             const SizedBox(height: 32),
 
             Center(
@@ -46,6 +54,7 @@ class _SelectTableState extends State<SelectTable> {
                 child: Text(
                   "Please enter the code to access your desired table.",
                   textAlign: TextAlign.center,
+                  selectionColor: AppColors.textPrimary,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w200),
                 ),
               ),
@@ -66,10 +75,10 @@ class _SelectTableState extends State<SelectTable> {
                     hintStyle: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFBFAFA6),
+                      color: AppColors.textIconSecondary
                     ),
                     filled: true,
-                    fillColor: Color(0xFFE8DED7),
+                    fillColor: AppColors.iconSquareColor,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(30),
                       borderSide: BorderSide.none,
@@ -80,7 +89,7 @@ class _SelectTableState extends State<SelectTable> {
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 8),
 
             SimpleButton(onTap: login, text: "Select Table"),
           ],
