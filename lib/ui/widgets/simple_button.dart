@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app_pedidos/theme/app_colors.dart';
 
 class SimpleButton extends StatelessWidget {
   final VoidCallback onTap;
@@ -18,16 +19,16 @@ class SimpleButton extends StatelessWidget {
         width: 240,
         height: 52,
         decoration: BoxDecoration(
-          color: const Color(0xFFDFA28F),
+          color: AppColors.primary,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Center(
           child: Text(
             text, 
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xFFB46A57),
+              color: AppColors.textIconPrimary,
             ),
           ),
         ),
