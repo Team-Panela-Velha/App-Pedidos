@@ -74,7 +74,7 @@ class _MainMenuState extends State<MainMenu> {
             ),
             child: Column(
               children: [ 
-                Image.asset('images/logo.jpg', height: 60),
+                Image.asset('images/logo2.png', height: 60),
                 const SizedBox(height: 10),
                 Text(
                   'Menu',

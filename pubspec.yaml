@@ -32,6 +32,7 @@ flutter:
     - images/sushi.jpg
     - images/logo.jpg
     - images/logo.svg
+    - images/logo2.png
   fonts:
     - family: Poppins
       fonts:
