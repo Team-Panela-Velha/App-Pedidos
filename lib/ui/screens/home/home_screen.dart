@@ -129,7 +129,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 10),
 
             SizedBox(
-              height: isLandscape ? 140 : height * 0.15, // altura responsiva
+              height: isLandscape ? 140 : height * 0.15,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
