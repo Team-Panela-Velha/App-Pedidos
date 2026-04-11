@@ -19,7 +19,10 @@ class _MainMenuState extends State<MainMenu> {
         title: const Text('App'),
       ),
       drawer: getSideBar(), // 👈 aqui entra a sidebar
-      body: widget.child,
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12),
+        child: widget.child,
+        ), 
     );
   }
 
