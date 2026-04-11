@@ -30,6 +30,7 @@ flutter:
   uses-material-design: true
   assets:
     - images/sushi.jpg
+    - images/logo.jpg
   fonts:
     - family: Poppins
       fonts:
