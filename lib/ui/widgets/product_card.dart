@@ -32,7 +32,7 @@ class ProductCard extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: Image.asset(
+                  child: Image.network(
                     image,
                     fit: BoxFit.cover,
                     width: double.infinity,
@@ -82,7 +82,7 @@ class ProductCard extends StatelessWidget {
         const SizedBox(height: 6),
 
         Text(
-          "R\$ $price",
+          price,
           style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,

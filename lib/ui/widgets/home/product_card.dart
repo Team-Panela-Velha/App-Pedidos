@@ -22,7 +22,7 @@ Widget productCard(BuildContext context, ProductModel product) {
                     Icons.fastfood, // mais coerente com comida havaiana 🍱
                     size: isLandscape ? 80 : width * 0.12,
                   )
-                : Image.network(product.image),
+                : Image.network(product.image, fit: BoxFit.cover, width: double.infinity, height: double.infinity,),
           ),
         ),
 
