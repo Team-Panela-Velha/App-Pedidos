@@ -50,12 +50,6 @@ class _MainMenuState extends State<MainMenu> {
         'path': Routes.category,
         'auth': false,
       },
-      {
-        'icon': Icons.production_quantity_limits,
-        'label': '...',
-        'path': Routes.addProduct,
-        'auth': true,
-      },
     ];
 
     final sidebarContent = Container(

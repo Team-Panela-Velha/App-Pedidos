@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:app_pedidos/data/mock_data.dart';
+import 'package:app_pedidos/router.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:app_pedidos/ui/widgets/home/banner_item.dart';
 import 'package:app_pedidos/ui/widgets/home/category_item.dart';
 import 'package:app_pedidos/ui/widgets/home/product_card.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -76,19 +79,9 @@ class _HomePageState extends State<HomePage> {
                       currentPage = index;
                     });
                   },
-                  children: [
-                    bannerItem(
-                      context,
-                      "Promoção Especial\n20% OFF",
-                      Icons.chair,
-                    ),
-                    bannerItem(context, "Frete Grátis", Icons.local_shipping),
-                    bannerItem(
-                      context,
-                      "Novidades da Semana",
-                      Icons.new_releases,
-                    ),
-                  ],
+                  children: List.generate(bannersMock.length, (j) {
+                    return bannerItem(context, bannersMock[j].title, bannersMock[j].icon);
+                  })
                 ),
               ),
             ),
@@ -133,13 +126,9 @@ class _HomePageState extends State<HomePage> {
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  categoryItem(context, Icons.chair, "Cadeiras"),
-                  categoryItem(context, Icons.table_restaurant, "Mesas"),
-                  categoryItem(context, Icons.bed, "Camas"),
-                  categoryItem(context, Icons.kitchen, "Cozinha"),
-                  categoryItem(context, Icons.chair, "Teste"),
-                ],
+                children: List.generate(categoriesMock.length, (j) {
+                  return categoryItem(context, categoriesMock[j].icon, categoriesMock[j].name);
+                })
               ),
             ),
 
@@ -232,7 +221,7 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(16),
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: 4,
+              itemCount: productsMock.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: isTablet ? 4 : (isLandscape ? 3 : 2),
                 mainAxisSpacing: 16,
@@ -242,7 +231,12 @@ class _HomePageState extends State<HomePage> {
                     : 0.75, // proporção responsiva
               ),
               itemBuilder: (context, index) {
-                return productCard(context);
+                final product = productsMock[index];
+
+                return GestureDetector(
+                  onTap: () => context.go(Routes.addProduct, extra: product),
+                  child: productCard(context, product),
+                );
               },
             ),
           ],

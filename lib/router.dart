@@ -1,3 +1,4 @@
+import 'package:app_pedidos/data/mock_data.dart';
 import 'package:app_pedidos/ui/screens/category/category_screen.dart';
 import 'package:app_pedidos/ui/screens/home/home_screen.dart';
 import 'package:app_pedidos/ui/screens/main_menu.dart';
@@ -35,7 +36,10 @@ class AppRouter {
           ),
           GoRoute(
             path: Routes.addProduct,
-            builder: (context, state) => ProductScreen(),
+            builder: (context, state) {
+              final product = state.extra as ProductModel;
+              return ProductScreen(product: product);
+            },
           ),
         ],
       ),

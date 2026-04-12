@@ -1,10 +1,13 @@
+import 'package:app_pedidos/data/mock_data.dart';
 import 'package:app_pedidos/ui/widgets/product_options.dart';
 import 'package:app_pedidos/ui/widgets/simple_button.dart';
 import 'package:flutter/material.dart';
 import 'package:app_pedidos/ui/widgets/product_card.dart';
 
 class ProductScreen extends StatefulWidget {
-  const ProductScreen({super.key});
+  final ProductModel product;
+  
+  const ProductScreen({super.key, required this.product});
 
   @override
   State<ProductScreen> createState() => _ProductScreenState();
@@ -26,10 +29,10 @@ class _ProductScreenState extends State<ProductScreen> {
                 SizedBox(
                   height: 300,
                   child: ProductCard(
-                  image: 'images/sushi.jpg',
-                  title: 'Luxe Lounge Sofa',
-                  description: 'Lorem ipsum...',
-                  price: '\$220.00',
+                  image: widget.product.image,
+                  title: widget.product.name,
+                  description: widget.product.description,
+                  price: widget.product.price,
                 )
               ),
                 const SizedBox(height: 16),
