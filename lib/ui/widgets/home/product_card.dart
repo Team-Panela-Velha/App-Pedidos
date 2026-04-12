@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:app_pedidos/data/mock_data.dart';
 
-Widget productCard(BuildContext context) {
+Widget productCard(BuildContext context, ProductModel product) {
   final width = MediaQuery.of(context).size.width;
-  final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+  final isLandscape =
+      MediaQuery.of(context).orientation == Orientation.landscape;
 
   return Container(
     decoration: BoxDecoration(
@@ -10,30 +12,63 @@ Widget productCard(BuildContext context) {
       color: Colors.grey.shade100,
     ),
     child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        /// 🔹 Imagem (ou placeholder)
         Expanded(
-          child: Icon(
-            Icons.chair,
-            size: isLandscape ? 80 : width * 0.12, // ícone responsivo
+          child: Center(
+            child: product.image.isEmpty
+                ? Icon(
+                    Icons.fastfood, // mais coerente com comida havaiana 🍱
+                    size: isLandscape ? 80 : width * 0.12,
+                  )
+                : Image.network(product.image),
           ),
         ),
+
+        /// 🔹 Nome
         Padding(
           padding: const EdgeInsets.all(8),
           child: Text(
-            "Cadeira Moderna",
+            product.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: isLandscape ? 18 : width * 0.035, // fonte responsiva
+              fontSize: isLandscape ? 18 : width * 0.035,
             ),
           ),
         ),
+
+        /// 🔹 Preço
         Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text(
-            "R\$ 199,00",
+            product.price,
             style: TextStyle(
-              fontSize: isLandscape ? 16 : width * 0.03, // fonte responsiva
+              fontSize: isLandscape ? 16 : width * 0.03,
             ),
+          ),
+        ),
+
+        /// 🔹 Rating
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+          child: Row(
+            children: [
+              Icon(
+                Icons.star,
+                size: 16,
+                color: Colors.amber,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                product.rating.toString(),
+                style: TextStyle(
+                  fontSize: isLandscape ? 14 : width * 0.028,
+                ),
+              ),
+            ],
           ),
         ),
       ],
