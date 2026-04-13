@@ -1,4 +1,5 @@
 import 'package:app_pedidos/data/mock_data.dart';
+import 'package:app_pedidos/ui/screens/add_product/product_category_screen.dart';
 import 'package:app_pedidos/ui/screens/category/category_screen.dart';
 import 'package:app_pedidos/ui/screens/home/home_screen.dart';
 import 'package:app_pedidos/ui/screens/main_menu.dart';
@@ -13,6 +14,8 @@ class Routes {
   static const home = '/home';
   static const category = '/category';
   static const addProduct = '/add-product';
+  static const products = '/products';
+
 }
 
 class AppRouter {
@@ -40,6 +43,10 @@ class AppRouter {
               final product = state.extra as ProductModel;
               return ProductScreen(product: product);
             },
+          ),
+          GoRoute(
+            path: Routes.products,
+            builder: (context, state) => const ProductsPage(),
           ),
         ],
       ),

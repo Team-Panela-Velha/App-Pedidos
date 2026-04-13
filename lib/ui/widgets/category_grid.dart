@@ -10,25 +10,21 @@ class CategoryGrid extends StatelessWidget {
       crossAxisCount: 2,
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: 7,
+      itemCount: 6,
       itemBuilder: (context, index) {
         switch (index) {
           case 0:
-            return const CategoryItem(text: "Decorative\nLight", height: 200);
+            return const CategoryItem(text: "Pokes", height: 220);
           case 1:
-            return const CategoryItem(text: "Sofa", height: 220);
+            return const CategoryItem(text: "Sushi", height: 250);
           case 2:
-            return const CategoryItem(text: "Beds", height: 280);
+            return const CategoryItem(text: "Bebidas", height: 250);
           case 3:
-            return const CategoryItem(text: "Tables", height: 220);
+            return const CategoryItem(text: "Sobremesas", height: 250);
           case 4:
-            return const CategoryItem(text: "Chairs", height: 220);
+            return const CategoryItem(text: "Combos", height: 250);
           case 5:
-            return const CategoryItem(text: "Cupboard", height: 280);
-          case 6:
-            return const CategoryItem(text: "Decor", height: 200);
+            return const CategoryItem(text: "Veganos", height: 220);
           default:
             return const SizedBox();
         }

@@ -50,6 +50,12 @@ class _MainMenuState extends State<MainMenu> {
         'path': Routes.category,
         'auth': false,
       },
+      {
+        'icon': Icons.inventory_2,
+        'label': 'Produtos',
+        'path': Routes.products,
+        'auth': false,
+      },
     ];
 
     final sidebarContent = Container(
