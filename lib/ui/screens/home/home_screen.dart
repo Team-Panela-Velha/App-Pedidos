@@ -227,8 +227,8 @@ class _HomePageState extends State<HomePage> {
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
                 childAspectRatio: isLandscape
-                    ? 1.2
-                    : 0.75, // proporção responsiva
+                    ? 0.8
+                    : 0.50, // proporção responsiva
               ),
               itemBuilder: (context, index) {
                 final product = productsMock[index];

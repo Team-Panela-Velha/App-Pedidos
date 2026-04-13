@@ -9,64 +9,98 @@ Widget productCard(BuildContext context, ProductModel product) {
   return Container(
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(16),
-      color: Colors.grey.shade100,
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 8,
+          offset: const Offset(0, 4),
+        ),
+      ],
     ),
+    clipBehavior: Clip.antiAlias, // importante p/ cortar a imagem
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        /// 🔹 Imagem (ou placeholder)
-        Expanded(
-          child: Center(
-            child: product.image.isEmpty
-                ? Icon(
-                    Icons.fastfood, // mais coerente com comida havaiana 🍱
-                    size: isLandscape ? 80 : width * 0.12,
-                  )
-                : Image.network(product.image, fit: BoxFit.cover, width: double.infinity, height: double.infinity,),
-          ),
-        ),
-
-        /// 🔹 Nome
-        Padding(
-          padding: const EdgeInsets.all(8),
-          child: Text(
-            product.name,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: isLandscape ? 18 : width * 0.035,
-            ),
-          ),
-        ),
-
-        /// 🔹 Preço
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            product.price,
-            style: TextStyle(
-              fontSize: isLandscape ? 16 : width * 0.03,
-            ),
-          ),
-        ),
-
-        /// 🔹 Rating
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
-          child: Row(
-            children: [
-              Icon(
-                Icons.star,
-                size: 16,
-                color: Colors.amber,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                product.rating.toString(),
-                style: TextStyle(
-                  fontSize: isLandscape ? 14 : width * 0.028,
+        /// 🔹 IMAGEM
+        AspectRatio(
+          aspectRatio: 2.5,
+          child: product.image.isEmpty
+              ? Center(
+                  child: Icon(
+                    Icons.fastfood,
+                    size: isLandscape ? 60 : width * 0.12,
+                    color: Colors.grey,
+                  ),
+                )
+              : Image.network(
+                  product.image,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
                 ),
+        ),
+
+        /// 🔹 CONTEÚDO
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// Nome
+              Text(
+                product.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: isLandscape ? 16 : width * 0.035,
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              /// (Opcional) descrição fake tipo da imagem
+              Text(
+                "Lorem ipsum dolor sit amet",
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: isLandscape ? 13 : width * 0.028,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              /// Preço + Rating na mesma linha
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    product.price,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: isLandscape ? 15 : width * 0.032,
+                    ),
+                  ),
+
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.star,
+                        size: 14,
+                        color: Colors.amber,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        product.rating.toString(),
+                        style: TextStyle(
+                          fontSize: isLandscape ? 13 : width * 0.028,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
