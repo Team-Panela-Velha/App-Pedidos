@@ -106,7 +106,8 @@ final List<ProductModel> productsMock = [
     name: "Combo Aloha",
     description: "Mix de poke + sushi + bebida",
     price: "R\$ 59,90",
-    image: "https://images.unsplash.com/photo-1562158070-622a9f0c5f0c",
+    image: "",
+    // image: "https://images.unsplash.com/photo-1562158070-622a9f0c5f0c",
     rating: 4.9,
   ),
   ProductModel(
