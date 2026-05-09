@@ -3,16 +3,18 @@ import 'package:app_pedidos/ui/screens/category/category_screen.dart';
 import 'package:app_pedidos/ui/screens/home/home_screen.dart';
 import 'package:app_pedidos/ui/screens/main_menu.dart';
 import 'package:app_pedidos/ui/screens/add_product/product_screen.dart';
-import 'package:app_pedidos/ui/screens/table/select_table.dart';
+import 'package:app_pedidos/ui/screens/session/new_tab.dart';
+import 'package:app_pedidos/ui/screens/session/select_table.dart';
 import 'package:app_pedidos/ui/screens/splash_screen.dart';
 import 'package:go_router/go_router.dart';
 
 class Routes {
   static const _ = '/';
   static const startSession = '/start-session';
-  static const home = '/home';
-  static const category = '/category';
-  static const addProduct = '/add-product';
+  static const newComanda   = '/comanda';
+  static const home         = '/home';
+  static const category     = '/category';
+  static const addProduct   = '/add-product';
 }
 
 class AppRouter {
@@ -23,6 +25,13 @@ class AppRouter {
       GoRoute(
         path: Routes.startSession,
         builder: (context, state) => SelectTable(),
+      ),
+      GoRoute(
+        path: Routes.newComanda,
+        builder: (context, state) {
+          final tableCode = state.extra as String;
+          return NewTab(tableCode: tableCode);
+        },
       ),
       ShellRoute(
         builder: (context, state, child) {
