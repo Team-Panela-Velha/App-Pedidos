@@ -1,4 +1,5 @@
 import 'package:app_pedidos/data/mock_data.dart';
+import 'package:app_pedidos/ui/screens/cart/cart_screen.dart';
 import 'package:app_pedidos/ui/screens/category/category_screen.dart';
 import 'package:app_pedidos/ui/screens/home/home_screen.dart';
 import 'package:app_pedidos/ui/screens/main_menu.dart';
@@ -11,10 +12,11 @@ import 'package:go_router/go_router.dart';
 class Routes {
   static const _ = '/';
   static const startSession = '/start-session';
-  static const newComanda   = '/comanda';
-  static const home         = '/home';
-  static const category     = '/category';
-  static const addProduct   = '/add-product';
+  static const newComanda = '/comanda';
+  static const home = '/home';
+  static const category = '/category';
+  static const addProduct = '/add-product';
+  static const cart = '/cart';
 }
 
 class AppRouter {
@@ -49,6 +51,10 @@ class AppRouter {
               final product = state.extra as ProductModel;
               return ProductScreen(product: product);
             },
+          ),
+          GoRoute(
+            path: Routes.cart,
+            builder: (context, state) => const CartScreen(),
           ),
         ],
       ),
