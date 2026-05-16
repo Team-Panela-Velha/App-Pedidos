@@ -1,9 +1,11 @@
+import 'package:app_pedidos/core/cart_provider.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:app_pedidos/ui/widgets/simple_button.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 // ---------------------------------------------------------------------------
-// Mock models (remova quando integrar com os models reais)
+// Modelos (mantidos aqui pois já existiam neste arquivo)
 // ---------------------------------------------------------------------------
 
 class CartAdditional {
@@ -37,47 +39,18 @@ class CartItem {
 }
 
 // ---------------------------------------------------------------------------
-// Mock data
-// ---------------------------------------------------------------------------
-
-final _cartMock = [
-  CartItem(
-    name: 'X-Burguer',
-    unitPrice: 28.90,
-    quantity: 2,
-    observation: 'Sem cebola',
-    additionals: [
-      CartAdditional(name: 'Bacon extra', price: 4.00),
-      CartAdditional(name: 'Queijo duplo', price: 3.50),
-    ],
-  ),
-  CartItem(
-    name: 'Batata Frita G',
-    unitPrice: 16.00,
-    quantity: 1,
-    additionals: [
-      CartAdditional(name: 'Cheddar', price: 5.00),
-    ],
-  ),
-  CartItem(
-    name: 'Suco de Laranja',
-    unitPrice: 9.00,
-    quantity: 3,
-    observation: 'Com pouco gelo',
-  ),
-];
-
-// ---------------------------------------------------------------------------
 // Screen
 // ---------------------------------------------------------------------------
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
-  double get _subtotal => _cartMock.fold(0, (sum, i) => sum + i.total);
-
   @override
   Widget build(BuildContext context) {
+    final cart = context.watch<CartProvider>();
+    final items = cart.items;
+    final totalPrice = cart.totalPrice;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
@@ -87,20 +60,6 @@ class CartScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 52, 20, 8),
             child: Row(
               children: [
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.iconSquareColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(Icons.arrow_back_ios_new_rounded,
-                        size: 16, color: AppColors.textPrimary),
-                  ),
-                ),
-                const SizedBox(width: 16),
                 Text(
                   'Carrinho',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -110,7 +69,7 @@ class CartScreen extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '${_cartMock.length} ${_cartMock.length == 1 ? 'item' : 'itens'}',
+                  '${items.length} ${items.length == 1 ? 'item' : 'itens'}',
                   style: TextStyle(
                     fontSize: 13,
                     color: AppColors.textIconSecondary,
@@ -122,20 +81,23 @@ class CartScreen extends StatelessWidget {
 
           // ── Lista de itens ────────────────────────────────────────────────
           Expanded(
-            child: _cartMock.isEmpty
+            child: items.isEmpty
                 ? _emptyState(context)
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                    itemCount: _cartMock.length,
+                    itemCount: items.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, index) =>
-                        _CartItemCard(item: _cartMock[index]),
+                        _CartItemCard(item: items[index]),
                   ),
           ),
 
-          // ── Resumo + botão ────────────────────────────────────────────────
-          if (_cartMock.isNotEmpty)
-            _OrderSummary(subtotal: _subtotal),
+          // ── Resumo + botão fechar conta ───────────────────────────────────
+          if (items.isNotEmpty)
+            _AccountSummary(
+              totalPrice: totalPrice,
+              onCloseAccount: () => _confirmCloseAccount(context, cart),
+            ),
         ],
       ),
     );
@@ -150,11 +112,60 @@ class CartScreen extends StatelessWidget {
               size: 64, color: AppColors.textIconSecondary),
           const SizedBox(height: 16),
           Text(
-            'Seu carrinho está vazio',
+            'Nenhum pedido realizado ainda',
             style: TextStyle(
               fontSize: 16,
               color: AppColors.textIconSecondary,
             ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Vá em "Pedido" para adicionar itens',
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textIconSecondary.withOpacity(0.6),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmCloseAccount(BuildContext context, CartProvider cart) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Fechar conta?'),
+        content: Text(
+          'Total: R\$ ${cart.totalPrice.toStringAsFixed(2)}\n\nDeseja finalizar e fechar a conta?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              cart.closeAccount();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Row(
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.white),
+                      SizedBox(width: 8),
+                      Text('Conta fechada com sucesso!'),
+                    ],
+                  ),
+                  backgroundColor: Colors.green.shade700,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              );
+            },
+            child: const Text('Fechar conta'),
           ),
         ],
       ),
@@ -182,11 +193,10 @@ class _CartItemCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Nome + quantidade + preço unitário
+          // Nome + quantidade + preço
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Badge de quantidade
               Container(
                 width: 32,
                 height: 32,
@@ -206,8 +216,6 @@ class _CartItemCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-
-              // Nome
               Expanded(
                 child: Text(
                   item.name,
@@ -218,8 +226,6 @@ class _CartItemCard extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Preço total do item
               Text(
                 'R\$ ${item.total.toStringAsFixed(2)}',
                 style: TextStyle(
@@ -246,17 +252,13 @@ class _CartItemCard extends StatelessWidget {
                       child: Text(
                         a.name,
                         style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textIconSecondary,
-                        ),
+                            fontSize: 12, color: AppColors.textIconSecondary),
                       ),
                     ),
                     Text(
                       '+R\$ ${a.price.toStringAsFixed(2)}',
                       style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textIconSecondary,
-                      ),
+                          fontSize: 12, color: AppColors.textIconSecondary),
                     ),
                   ],
                 ),
@@ -269,9 +271,11 @@ class _CartItemCard extends StatelessWidget {
             const SizedBox(height: 10),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.07),
+                color:
+                    Theme.of(context).colorScheme.primary.withOpacity(0.07),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -284,9 +288,8 @@ class _CartItemCard extends StatelessWidget {
                     child: Text(
                       item.observation!,
                       style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.primary),
                     ),
                   ),
                 ],
@@ -300,13 +303,17 @@ class _CartItemCard extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Resumo e botão de pedido
+// Resumo da conta + botão fechar
 // ---------------------------------------------------------------------------
 
-class _OrderSummary extends StatelessWidget {
-  final double subtotal;
+class _AccountSummary extends StatelessWidget {
+  final double totalPrice;
+  final VoidCallback onCloseAccount;
 
-  const _OrderSummary({required this.subtotal});
+  const _AccountSummary({
+    required this.totalPrice,
+    required this.onCloseAccount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -324,32 +331,24 @@ class _OrderSummary extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Linha subtotal
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Subtotal',
                 style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textIconSecondary,
-                ),
+                    fontSize: 14, color: AppColors.textIconSecondary),
               ),
               Text(
-                'R\$ ${subtotal.toStringAsFixed(2)}',
+                'R\$ ${totalPrice.toStringAsFixed(2)}',
                 style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textIconSecondary,
-                ),
+                    fontSize: 14, color: AppColors.textIconSecondary),
               ),
             ],
           ),
-
           const SizedBox(height: 6),
           Divider(color: AppColors.textIconSecondary.withOpacity(0.15)),
           const SizedBox(height: 6),
-
-          // Linha total
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -362,7 +361,7 @@ class _OrderSummary extends StatelessWidget {
                 ),
               ),
               Text(
-                'R\$ ${subtotal.toStringAsFixed(2)}',
+                'R\$ ${totalPrice.toStringAsFixed(2)}',
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
@@ -371,13 +370,10 @@ class _OrderSummary extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 20),
-
-          // TODO: integrar com service de pedido
           SimpleButton(
-            onTap: () {},
-            text: 'Realizar pedido',
+            onTap: onCloseAccount,
+            text: 'Fechar Conta',
           ),
         ],
       ),
