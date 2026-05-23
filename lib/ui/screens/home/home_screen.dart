@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:app_pedidos/core/model/product.dart';
+import 'package:app_pedidos/core/provider/product_provider.dart';
 import 'package:app_pedidos/data/mock_data.dart';
 import 'package:app_pedidos/router.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
@@ -8,6 +10,7 @@ import 'package:app_pedidos/ui/widgets/home/category_item.dart';
 import 'package:app_pedidos/ui/widgets/home/product_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,6 +21,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final PageController _controller = PageController(viewportFraction: 0.95);
+
   int currentPage = 0;
 
   late Timer _bannerTimer;
@@ -25,6 +29,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProductProvider>().getProducts();
+    });
 
     _bannerTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (_controller.hasClients) {
@@ -52,6 +60,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final productProvider = context.watch<ProductProvider>();
+
+    final List<Product> products = productProvider.products;
+
     final size = MediaQuery.of(context).size;
     final width = size.width;
     final height = size.height;
@@ -62,186 +74,230 @@ class _HomePageState extends State<HomePage> {
     final isTablet = shortestSide > 600;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 🔹 Banner
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                height: isLandscape ? 300 : height * 0.22,
-                child: PageView(
-                  padEnds: false,
-                  controller: _controller,
-                  onPageChanged: (index) {
-                    setState(() {
-                      currentPage = index;
-                    });
-                  },
-                  children: List.generate(bannersMock.length, (j) {
-                    return bannerItem(context, bannersMock[j].title, bannersMock[j].icon);
-                  })
-                ),
-              ),
-            ),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(3, (index) {
-                final isActive = currentPage == index;
-                final colors = Theme.of(context).colorScheme;
-
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: isActive ? 20 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    color: isActive
-                        ? AppColors.disabled
-                        : colors.primary.withOpacity(0.3),
-                  ),
-                );
-              }),
-            ),
-
-            // 🔹 Categorias
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                "Categorias",
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontSize: isLandscape ? 32 : width * 0.05, // fonte responsiva
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            SizedBox(
-              height: isLandscape ? 140 : height * 0.15,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: List.generate(categoriesMock.length, (j) {
-                  return categoryItem(context, categoriesMock[j].icon, categoriesMock[j].name);
-                })
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // 🔹 Destaque
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                "Mais Vendido",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-
-            Container(
-              height: isLandscape ? 280 : height * 0.22,
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
-              ),
-              child: Row(
+      body: productProvider.isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // 🔹 Banner
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: SizedBox(
+                      height: isLandscape ? 300 : height * 0.22,
+                      child: PageView(
+                        padEnds: false,
+                        controller: _controller,
+                        onPageChanged: (index) {
+                          setState(() {
+                            currentPage = index;
+                          });
+                        },
+                        children: List.generate(bannersMock.length, (j) {
+                          return bannerItem(
+                            context,
+                            bannersMock[j].title,
+                            bannersMock[j].icon,
+                          );
+                        }),
+                      ),
+                    ),
+                  ),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(3, (index) {
+                      final isActive = currentPage == index;
+                      final colors = Theme.of(context).colorScheme;
+
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: isActive ? 20 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: isActive
+                              ? AppColors.disabled
+                              : colors.primary.withOpacity(0.3),
+                        ),
+                      );
+                    }),
+                  ),
+
+                  // 🔹 Categorias
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      "Categorias",
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineMedium
+                          ?.copyWith(
+                            color: AppColors.textSecondary,
+                            fontSize: isLandscape ? 32 : width * 0.05,
+                          ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  SizedBox(
+                    height: isLandscape ? 140 : height * 0.15,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      children: List.generate(categoriesMock.length, (j) {
+                        return categoryItem(
+                          context,
+                          categoriesMock[j].icon,
+                          categoriesMock[j].name,
+                        );
+                      }),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 🔹 Destaque
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      "Mais Vendido",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                  Container(
+                    height: isLandscape ? 280 : height * 0.22,
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .secondary
+                          .withOpacity(0.2),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          "Carrinho de Cozinha",
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Carrinho de Cozinha",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
                               ),
+                              const SizedBox(height: 8),
+                              Text(
+                                "Produto muito útil para sua casa",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color:
+                                          AppColors.textSecondary,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.star,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    "4.5",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Produto muito útil para sua casa",
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: AppColors.textSecondary),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.star,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              "4.5",
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
+
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.kitchen,
+                            size:
+                                isLandscape ? 48 : width * 0.1,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary,
+                          ),
                         ),
                       ],
                     ),
                   ),
 
-                  // 🔹 Ícone com estilo mais leve
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withOpacity(0.2),
-                      shape: BoxShape.circle,
+                  // 🔹 Lista de produtos
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      "Novos Produtos",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.kitchen,
-                      size: isLandscape ? 48 : width * 0.1, // ícone responsivo
-                      color: Theme.of(context).colorScheme.primary,
+                  ),
+
+                  GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    shrinkWrap: true,
+                    physics:
+                        const NeverScrollableScrollPhysics(),
+                    itemCount: products.length,
+                    gridDelegate:
+                        SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount:
+                          isTablet ? 4 : (isLandscape ? 3 : 2),
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      childAspectRatio:
+                          isLandscape ? 0.8 : 0.50,
                     ),
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+
+                      return GestureDetector(
+                        onTap: () => context.go(
+                          Routes.addProduct,
+                          extra: product,
+                        ),
+                        child: productCard(context, product),
+                      );
+                    },
                   ),
                 ],
               ),
             ),
-
-            // 🔹 Lista de produtos
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                "Novos Produtos",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-
-            GridView.builder(
-              padding: const EdgeInsets.all(16),
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: productsMock.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: isTablet ? 4 : (isLandscape ? 3 : 2),
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: isLandscape
-                    ? 0.8
-                    : 0.50, // proporção responsiva
-              ),
-              itemBuilder: (context, index) {
-                final product = productsMock[index];
-
-                return GestureDetector(
-                  onTap: () => context.go(Routes.addProduct, extra: product),
-                  child: productCard(context, product),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

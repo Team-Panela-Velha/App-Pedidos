@@ -1,4 +1,4 @@
-import 'package:app_pedidos/core/cart_provider.dart';
+import 'package:app_pedidos/core/provider/cart_provider.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:app_pedidos/ui/widgets/simple_button.dart';
 import 'package:flutter/material.dart';

@@ -1,5 +1,6 @@
 import 'package:app_pedidos/core/bloc/app/app_bloc.dart';
-import 'package:app_pedidos/core/cart_provider.dart';
+import 'package:app_pedidos/core/provider/cart_provider.dart';
+import 'package:app_pedidos/core/provider/product_provider.dart';
 import 'package:app_pedidos/locator.dart';
 import 'package:app_pedidos/router.dart';
 import 'package:app_pedidos/theme/app_themes.dart';
@@ -12,14 +13,9 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => AppBloc()..initialize(),
-          lazy: false,
-        ),
-
-        ChangeNotifierProvider(
-          create: (_) => CartProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => AppBloc()..initialize(), lazy: false),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => ProductProvider()),
       ],
       child: const MyApp(),
     ),
