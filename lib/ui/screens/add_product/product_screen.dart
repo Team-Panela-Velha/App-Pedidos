@@ -6,7 +6,7 @@ import 'package:app_pedidos/ui/widgets/product_card.dart';
 
 class ProductScreen extends StatefulWidget {
   final ProductModel product;
-  
+
   const ProductScreen({super.key, required this.product});
 
   @override
@@ -16,36 +16,51 @@ class ProductScreen extends StatefulWidget {
 class _ProductScreenState extends State<ProductScreen> {
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Center(
-          child: SizedBox(
-            width: 1000,
-            child: SingleChildScrollView( 
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: Container(
+          width: width * 0.9,
+          constraints: const BoxConstraints(
+            maxWidth: 1200,
+          ),
+          padding: const EdgeInsets.all(20),
+          child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  height: 300,
+
+                AspectRatio(
+                  aspectRatio: 16 / 6,
                   child: ProductCard(
-                  image: widget.product.image,
-                  title: widget.product.name,
-                  description: widget.product.description,
-                  price: widget.product.price,
-                )
-              ),
-                const SizedBox(height: 16),
+                    image: widget.product.image,
+                    title: widget.product.name,
+                    description: widget.product.description,
+                    price: widget.product.price,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
                 const ProductOptions(),
-                const SizedBox(height: 16),    
-                // ignore: avoid_print
-                Center(child: SimpleButton(onTap:() => print('adicionado'), text: 'Add to Card'))
+
+                const SizedBox(height: 20),
+
+                Center(
+                  child: SizedBox(
+                    width: 300,
+                    child: SimpleButton(
+                      onTap: () => print('adicionado'),
+                      text: 'Add to Cart',
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          
         ),
-      ),
       ),
     );
   }
