@@ -20,10 +20,10 @@ class _MainMenuState extends State<MainMenu> {
     return isLandscape
         ? Row(
             children: [
-              SizedBox(width: 250, child: getSideBar()),
+              SizedBox(width: 250, child: getSideBar(isDrawer: false)),
               Expanded(
                 child: Scaffold(
-                  appBar: AppBar(title: Text("App")),
+                  appBar: AppBar(title: const Text("App")),
                   body: widget.child,
                 ),
               ),
@@ -31,24 +31,37 @@ class _MainMenuState extends State<MainMenu> {
           )
         : Scaffold(
             appBar: AppBar(title: const Text('App')),
-            drawer: getSideBar(), // 👈 aqui entra a sidebar
+            drawer: getSideBar(),
             body: widget.child,
           );
   }
 
-  Widget getSideBar({isDrawer = true}) {
+  Widget getSideBar({bool isDrawer = true}) {
+    // Consome o CartProvider para exibir o badge no carrinho
+    // final cartProvider = context.watch<CartProvider>();
+    // final cartCount = cartProvider.totalItemCount;
+
     final items = [
       {
         'icon': Icons.house,
         'label': 'Destaques',
         'path': Routes.home,
-        'auth': false,
       },
       {
         'icon': Icons.category,
         'label': 'Categorias',
         'path': Routes.category,
-        'auth': false,
+      },
+      {
+        'icon': Icons.receipt_long,
+        'label': 'Pedido',
+        'path': Routes.order,
+      },
+      {
+        'icon': Icons.shopping_cart,
+        'label': 'Carrinho',
+        'path': Routes.cart,
+        'badge': 2,   // mockado
       },
       {
         'icon': Icons.inventory_2,
@@ -59,13 +72,13 @@ class _MainMenuState extends State<MainMenu> {
     ];
 
     final sidebarContent = Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
       ),
       child: Column(
         children: [
-          // 🔹 HEADER (com primary color)
+          // 🔹 HEADER
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -73,7 +86,7 @@ class _MainMenuState extends State<MainMenu> {
               color: Theme.of(context).colorScheme.primary,
             ),
             child: Column(
-              children: [ 
+              children: [
                 Image.asset('images/logo2.png', height: 60),
                 const SizedBox(height: 10),
                 Text(
@@ -92,17 +105,53 @@ class _MainMenuState extends State<MainMenu> {
           Expanded(
             child: ListView(
               children: List.generate(items.length, (index) {
+                final item = items[index];
+                final badge = item['badge'] as int?;
+                final hasBadge = badge != null && badge > 0;
+
                 return ListTile(
-                  leading: Icon(
-                    items[index]['icon'] as IconData,
-                    color: Colors.black87,
+                  leading: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(
+                        item['icon'] as IconData,
+                        color: Colors.black87,
+                      ),
+                      if (hasBadge)
+                        Positioned(
+                          top: -6,
+                          right: -8,
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 18,
+                              minHeight: 18,
+                            ),
+                            child: Text(
+                              badge > 99 ? '99+' : '$badge',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   title: Text(
-                    items[index]['label'] as String,
+                    item['label'] as String,
                     style: const TextStyle(color: Colors.black87),
                   ),
                   onTap: () {
-                    context.go(items[index]['path'] as String);
+                    // Fecha o drawer antes de navegar (apenas no modo portrait)
+                    if (isDrawer) Navigator.of(context).pop();
+                    context.go(item['path'] as String);
                   },
                 );
               }),
@@ -112,6 +161,8 @@ class _MainMenuState extends State<MainMenu> {
       ),
     );
 
-    return isDrawer ? Drawer(child: sidebarContent,) : sidebarContent;
+    return isDrawer
+    ? Drawer(child: sidebarContent)
+    : Material(child: sidebarContent);
   }
 }

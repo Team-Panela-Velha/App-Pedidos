@@ -14,15 +14,18 @@ class SelectTable extends StatefulWidget {
 class _SelectTableState extends State<SelectTable> {
   final TextEditingController tableCodeController = TextEditingController();
 
-  void login() {
-    String pass = tableCodeController.text;
+  // TODO: substituir validação hardcoded pela chamada ao service
+  void _entrar() {
+    final codigo = tableCodeController.text.trim();
+    if (codigo.isEmpty) return;
 
-    if (pass == "1234") {
-      context.go(Routes.home);
+    if (codigo == "1234") {
+      // sessionProvider.iniciarSessao(codigo); — adicionar quando integrar
+      context.go(Routes.newComanda, extra: codigo);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Table Not Foud"),
+          content: Text("Mesa não encontrada"),
           backgroundColor: Colors.red,
         ),
       );
@@ -54,8 +57,10 @@ class _SelectTableState extends State<SelectTable> {
                 child: Text(
                   "Please enter the code to access your desired table.",
                   textAlign: TextAlign.center,
-                  selectionColor: AppColors.textPrimary,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w200),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w200,
+                  ),
                 ),
               ),
             ),
@@ -70,12 +75,14 @@ class _SelectTableState extends State<SelectTable> {
                   controller: tableCodeController,
                   textAlign: TextAlign.center,
                   textAlignVertical: TextAlignVertical.center,
+                  keyboardType: TextInputType.number,
+                  onSubmitted: (_) => _entrar(),
                   decoration: InputDecoration(
                     hintText: "Table Code",
                     hintStyle: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textIconSecondary
+                      color: AppColors.textIconSecondary,
                     ),
                     filled: true,
                     fillColor: AppColors.iconSquareColor,
@@ -83,7 +90,7 @@ class _SelectTableState extends State<SelectTable> {
                       borderRadius: BorderRadius.circular(30),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding: EdgeInsets.symmetric(vertical: 16),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
               ),
@@ -91,7 +98,7 @@ class _SelectTableState extends State<SelectTable> {
 
             const SizedBox(height: 8),
 
-            SimpleButton(onTap: login, text: "Select Table"),
+            SimpleButton(onTap: _entrar, text: "Select Table"),
           ],
         ),
       ),
