@@ -1,5 +1,5 @@
 import 'package:app_pedidos/core/base/base_service.dart';
-import 'package:app_pedidos/core/model/product.dart';
+import 'package:app_pedidos/core/model/product/product.dart';
 import 'package:app_pedidos/core/service/api_service.dart';
 import 'package:app_pedidos/locator.dart';
 
@@ -27,4 +27,6 @@ class ProductService extends BaseService {
   // Future<void> deleteProduct(int id) async {
   //   await apiService.delete('/products/$id');
   // }
+
+  // getProductExtras
 }

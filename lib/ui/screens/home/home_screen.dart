@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app_pedidos/core/model/product.dart';
+import 'package:app_pedidos/core/model/product/product.dart';
 import 'package:app_pedidos/core/provider/product_provider.dart';
 import 'package:app_pedidos/data/mock_data.dart';
 import 'package:app_pedidos/router.dart';

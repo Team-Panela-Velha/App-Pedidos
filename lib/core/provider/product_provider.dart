@@ -1,4 +1,4 @@
-import 'package:app_pedidos/core/model/product.dart';
+import 'package:app_pedidos/core/model/product/product.dart';
 import 'package:app_pedidos/core/service/product/product_service.dart';
 import 'package:app_pedidos/locator.dart';
 import 'package:flutter/material.dart';
