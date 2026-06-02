@@ -1,6 +1,6 @@
-import 'package:app_pedidos/core/provider/cart_provider.dart';
+import 'package:app_pedidos/core/model/order/order_item.dart';
+import 'package:app_pedidos/core/provider/order_provider.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
-import 'package:app_pedidos/ui/screens/cart/cart_screen.dart';
 import 'package:app_pedidos/ui/widgets/simple_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -35,68 +35,62 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
-  // Itens do pedido atual.
-  // Substituir pelo estado real vindo da CategoryScreen/ProductScreen.
-  final Map<String, _OrderEntry> _current = {
-    '1': _OrderEntry(id: '1', name: 'X-Burguer', unitPrice: 32.90, quantity: 2),
-    '7': _OrderEntry(id: '7', name: 'Refrigerante Lata', unitPrice: 7.90),
-    '4': _OrderEntry(id: '4', name: 'Batata Frita P', unitPrice: 12.90),
-  };
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
-
-  int get _totalCount => _current.values.fold(0, (s, e) => s + e.quantity);
-
-  double get _totalPrice =>
-      _current.values.fold(0.0, (s, e) => s + e.unitPrice * e.quantity);
+  // Removendo itens mockados e usando os do OrderProvider
 
   // ── Ações ─────────────────────────────────────────────────────────────────
 
-  void _increment(String id) => setState(() => _current[id]!.quantity++);
-
-  void _decrement(String id) {
-    setState(() {
-      if (_current[id]!.quantity > 1) {
-        _current[id]!.quantity--;
-      } else {
-        _current.remove(id);
-      }
-    });
+  void _increment(int productId) {
+    final orderProvider = context.read<OrderProvider>();
+    final item = orderProvider.pendingItems.firstWhere((i) => i.productId == productId);
+    orderProvider.updatePendingItemQuantity(productId, item.quantity + 1);
   }
 
-  void _removeItem(String id) => setState(() => _current.remove(id));
+  void _decrement(int productId) {
+    final orderProvider = context.read<OrderProvider>();
+    final item = orderProvider.pendingItems.firstWhere((i) => i.productId == productId);
+    orderProvider.updatePendingItemQuantity(productId, item.quantity - 1);
+  }
 
-  void _sendToCart() {
-    if (_current.isEmpty) return;
+  void _removeItem(int productId) {
+    context.read<OrderProvider>().removeItemFromPending(productId);
+  }
 
-    final cartItems = _current.values
-        .map((e) => CartItem(
-              name: e.name,
-              unitPrice: e.unitPrice,
-              quantity: e.quantity,
-            ))
-        .toList();
+  Future<void> _placeOrder() async {
+    final orderProvider = context.read<OrderProvider>();
+    if (orderProvider.pendingItems.isEmpty) return;
 
-    context.read<CartProvider>().addItems(cartItems);
+    try {
+      // O OrderProvider agora usa o tabId dinâmico do AppData
+      await orderProvider.placeOrder(orderProvider.pendingItems);
 
-    final count = _totalCount;
-    setState(() => _current.clear());
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 8),
+                Text('Pedido enviado para a cozinha! 🍳'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 8),
-            Text('$count item(s) enviado(s) para a cozinha! 🍳'),
-          ],
-        ),
-        backgroundColor: Colors.green.shade700,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+        // Limpa itens pendentes após sucesso
+        orderProvider.clearPendingItems();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao realizar pedido: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
@@ -104,28 +98,31 @@ class _OrderScreenState extends State<OrderScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final entries = _current.values.toList();
+    final orderProvider = context.watch<OrderProvider>();
+    final entries = orderProvider.pendingItems;
+
+    final totalCount = entries.fold(0, (sum, item) => sum + item.quantity);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: Column(
         children: [
-          // ── Header ──────────────────────────────────────────────────────
+          // ... (mesmo header)
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 52, 20, 16),
             child: Row(
               children: [
                 Text(
-                  'Pedido',
+                  'Pedido Atual',
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
                   ),
                 ),
                 const Spacer(),
-                if (_totalCount > 0)
+                if (totalCount > 0)
                   Text(
-                    '$_totalCount ${_totalCount == 1 ? 'item' : 'itens'}',
+                    '$totalCount ${totalCount == 1 ? 'item' : 'itens'}',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textIconSecondary,
@@ -146,10 +143,11 @@ class _OrderScreenState extends State<OrderScreen> {
                     itemBuilder: (context, index) {
                       final entry = entries[index];
                       return _OrderItemCard(
-                        entry: entry,
-                        onIncrement: () => _increment(entry.id),
-                        onDecrement: () => _decrement(entry.id),
-                        onRemove: () => _removeItem(entry.id),
+                        name: entry.productName ?? 'Produto',
+                        quantity: entry.quantity,
+                        onIncrement: () => _increment(entry.productId),
+                        onDecrement: () => _decrement(entry.productId),
+                        onRemove: () => _removeItem(entry.productId),
                       );
                     },
                   ),
@@ -158,7 +156,7 @@ class _OrderScreenState extends State<OrderScreen> {
       ),
 
       // ── Barra inferior: total + botão realizar pedido ────────────────────
-      bottomNavigationBar: _current.isEmpty
+      bottomNavigationBar: entries.isEmpty
           ? null
           : Container(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
@@ -175,30 +173,10 @@ class _OrderScreenState extends State<OrderScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total do pedido',
-                        style: TextStyle(
-                          color: AppColors.textIconSecondary,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Text(
-                        'R\$ ${_totalPrice.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
                   SimpleButton(
-                    onTap: _sendToCart,
-                    text: 'Realizar Pedido',
+                    onTap: _placeOrder,
+                    text: 'Enviar para Cozinha',
+                    isLoading: orderProvider.isLoading,
                   ),
                 ],
               ),
@@ -233,17 +211,19 @@ class _OrderScreenState extends State<OrderScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// Card de item do pedido
+// Card de item do pedido (atualizado para ser genérico)
 // ---------------------------------------------------------------------------
 
 class _OrderItemCard extends StatelessWidget {
-  final _OrderEntry entry;
+  final String name;
+  final int quantity;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
   final VoidCallback onRemove;
 
   const _OrderItemCard({
-    required this.entry,
+    required this.name,
+    required this.quantity,
     required this.onIncrement,
     required this.onDecrement,
     required this.onRemove,
@@ -251,8 +231,6 @@ class _OrderItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -261,38 +239,22 @@ class _OrderItemCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Nome + subtotal
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  entry.name,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'R\$ ${(entry.unitPrice * entry.quantity).toStringAsFixed(2)}',
-                  style: TextStyle(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
+            child: Text(
+              name,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
 
-          // Controle de quantidade
           _QtyBtn(icon: Icons.remove, onTap: onDecrement),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
-              '${entry.quantity}',
+              '$quantity',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
@@ -300,7 +262,6 @@ class _OrderItemCard extends StatelessWidget {
 
           const SizedBox(width: 10),
 
-          // Botão remover
           GestureDetector(
             onTap: onRemove,
             child: Container(

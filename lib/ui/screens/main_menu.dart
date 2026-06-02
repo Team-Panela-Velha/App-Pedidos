@@ -1,6 +1,8 @@
+import 'package:app_pedidos/core/provider/order_provider.dart';
 import 'package:app_pedidos/router.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class MainMenu extends StatefulWidget {
   final Widget child;
@@ -37,9 +39,9 @@ class _MainMenuState extends State<MainMenu> {
   }
 
   Widget getSideBar({bool isDrawer = true}) {
-    // Consome o CartProvider para exibir o badge no carrinho
-    // final cartProvider = context.watch<CartProvider>();
-    // final cartCount = cartProvider.totalItemCount;
+    // Consome o OrderProvider para exibir o badge no pedido
+    final orderProvider = context.watch<OrderProvider>();
+    final pendingCount = orderProvider.pendingItems.fold(0, (sum, item) => sum + item.quantity);
 
     final items = [
       {
@@ -56,12 +58,12 @@ class _MainMenuState extends State<MainMenu> {
         'icon': Icons.receipt_long,
         'label': 'Pedido',
         'path': Routes.order,
+        'badge': pendingCount > 0 ? pendingCount : null,
       },
       {
         'icon': Icons.shopping_cart,
         'label': 'Carrinho',
         'path': Routes.cart,
-        'badge': 2,   // mockado
       },
     ];
 

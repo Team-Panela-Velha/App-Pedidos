@@ -7,6 +7,18 @@ import 'package:go_router/go_router.dart';
 class AppBloc extends BaseBloc {
   late GoRouter router; 
 
+  void startSession(int tabId, String tableCode) {
+    appData.tabId = tabId;
+    appData.tableCode = tableCode;
+    notifyListeners();
+  }
+
+  void endSession() {
+    appData.tabId = null;
+    appData.tableCode = null;
+    notifyListeners();
+  }
+
   Future<void> initialize() async {
     await execute(() async {
       await Future.delayed(const Duration(seconds: 3));

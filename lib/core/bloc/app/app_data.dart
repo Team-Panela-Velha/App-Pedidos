@@ -1,3 +1,4 @@
 class AppData {
-  String? teste;
+  int? tabId;
+  String? tableCode;
 }

@@ -1,17 +1,12 @@
+import 'package:app_pedidos/core/model/product/product.dart';
 import 'package:flutter/material.dart';
 
 class ProductCard extends StatelessWidget {
-  final String image;
-  final String title;
-  final String description;
-  final String price;
+  final Product product;
 
   const ProductCard({
     super.key,
-    required this.image,
-    required this.title,
-    required this.description,
-    required this.price,
+    required this.product,
   });
 
   @override
@@ -19,7 +14,6 @@ class ProductCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -32,35 +26,33 @@ class ProductCard extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: Image.network(
-                    image,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
+                  child: product.image != null
+                      ? Image.network(
+                          product.image!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 50),
+                        )
+                      : const Icon(Icons.image, size: 50),
                 ),
               ),
             ),
-
             const SizedBox(width: 20),
-
-           
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    product.name,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
                   Text(
-                    description,
+                    product.description ?? '',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.black54,
@@ -71,18 +63,14 @@ class ProductCard extends StatelessWidget {
             ),
           ],
         ),
-
         const SizedBox(height: 12),
-
         const Divider(
           color: Color(0xFFF4B5A4),
           thickness: 2,
         ),
-
         const SizedBox(height: 6),
-
         Text(
-          price,
+          'R\$ ${product.price.toStringAsFixed(2)}',
           style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
