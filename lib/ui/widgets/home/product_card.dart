@@ -1,8 +1,8 @@
-import 'package:app_pedidos/theme/app_colors.dart';
+import 'package:app_pedidos/core/model/product/product.dart';
 import 'package:flutter/material.dart';
 import 'package:app_pedidos/data/mock_data.dart';
 
-Widget productCard(BuildContext context, ProductModel product) {
+Widget productCard(BuildContext context, Product product) {
   final width = MediaQuery.of(context).size.width;
   final isLandscape =
       MediaQuery.of(context).orientation == Orientation.landscape;
@@ -26,7 +26,7 @@ Widget productCard(BuildContext context, ProductModel product) {
         /// 🔹 IMAGEM
         AspectRatio(
           aspectRatio: 2.5,
-          child: product.image.isEmpty
+          child: product.image == null
               ? Center(
                   child: Icon(
                     Icons.fastfood,
@@ -35,7 +35,7 @@ Widget productCard(BuildContext context, ProductModel product) {
                   ),
                 )
               : Image.network(
-                  product.image,
+                  product.image!,
                   fit: BoxFit.cover,
                   width: double.infinity,
                 ),
@@ -80,20 +80,29 @@ Widget productCard(BuildContext context, ProductModel product) {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    product.price,
+                    product.price.toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: isLandscape ? 15 : width * 0.032,
                     ),
                   ),
 
-                  Row(
-                    children: [
-                      _iconButton(Icons.add),
-                      const SizedBox(width: 4),
-                      
-                    ],
-                  ),
+                  // Row(
+                  //   children: [
+                  //     Icon(
+                  //       Icons.star,
+                  //       size: 14,
+                  //       color: Colors.amber,
+                  //     ),
+                  //     const SizedBox(width: 4),
+                  //     Text(
+                  //       product.rating.toString(),
+                  //       style: TextStyle(
+                  //         fontSize: isLandscape ? 13 : width * 0.028,
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
                 ],
               ),
             ],

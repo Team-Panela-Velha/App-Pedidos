@@ -1,14 +1,36 @@
 import 'dart:convert';
+import 'package:app_pedidos/settings.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  String baseUrl = "";
+  String baseUrl = Settings.baseUrl;
   String token = "";
 
   Future<http.Response> get(String endpoint) async {
-    final url = Uri.parse('$baseUrl$endpoint');
+    try {
+      final url = Uri.parse('$baseUrl$endpoint');
 
-    return await http.get(url, headers: _headers());
+      print('');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('🚀 GET REQUEST');
+      print('URL: $url');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      final response = await http.get(
+        url,
+        headers: _headers(),
+      );
+
+      print('✅ RESPONSE RECEIVED');
+      print('STATUS: ${response.statusCode}');
+
+      return response;
+    } catch (e) {
+      print('❌ GET ERROR');
+      print(e);
+
+      rethrow;
+    }
   }
 
   Future<http.Response> post(String endpoint, {dynamic body}) async {

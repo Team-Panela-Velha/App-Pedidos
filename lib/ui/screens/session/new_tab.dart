@@ -1,19 +1,45 @@
+import 'package:app_pedidos/core/bloc/app/app_bloc.dart';
+import 'package:app_pedidos/core/service/tab_service.dart';
 import 'package:app_pedidos/router.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:app_pedidos/ui/widgets/simple_button.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-class NewTab extends StatelessWidget {
+class NewTab extends StatefulWidget {
   final String tableCode;
 
   const NewTab({super.key, required this.tableCode});
 
-  // TODO: substituir por chamada real ao service
-  void _iniciarComanda(BuildContext context) {
-    // await comandaService.criar(tableCode);
-    // comandaProvider.iniciarComanda(comanda.id);
-    context.go(Routes.home);
+  @override
+  State<NewTab> createState() => _NewTabState();
+}
+
+class _NewTabState extends State<NewTab> {
+  bool _isLoading = false;
+
+  Future<void> _iniciarComanda(BuildContext context) async {
+    setState(() => _isLoading = true);
+
+    try {
+      final tabService = TabService();
+      // Chama o endpoint /tabs/start para iniciar a comanda
+      final tab = await tabService.startTab(widget.tableCode);
+
+      if (mounted) {
+        context.read<AppBloc>().startSession(tab.id, widget.tableCode);
+        context.go(Routes.home);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao iniciar comanda: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -43,7 +69,7 @@ class NewTab extends StatelessWidget {
             const SizedBox(height: 24),
 
             Text(
-              "Mesa $tableCode",
+              "Mesa ${widget.tableCode}",
               style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -100,21 +126,8 @@ class NewTab extends StatelessWidget {
 
             SimpleButton(
               onTap: () => _iniciarComanda(context),
-              text: "Iniciar comanda",
-            ),
-
-            const SizedBox(height: 12),
-
-            // Botão secundário para voltar e trocar de mesa
-            TextButton(
-              onPressed: () => context.go(Routes.startSession),
-              child: Text(
-                "Trocar mesa",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textIconSecondary,
-                ),
-              ),
+              text: "Iniciar Comanda",
+              isLoading: _isLoading,
             ),
           ],
         ),

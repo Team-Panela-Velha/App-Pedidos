@@ -1,3 +1,4 @@
+import 'package:app_pedidos/core/service/table_service.dart';
 import 'package:app_pedidos/router.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:app_pedidos/ui/widgets/simple_button.dart';
@@ -13,22 +14,32 @@ class SelectTable extends StatefulWidget {
 
 class _SelectTableState extends State<SelectTable> {
   final TextEditingController tableCodeController = TextEditingController();
+  bool _isLoading = false;
 
-  // TODO: substituir validação hardcoded pela chamada ao service
-  void _entrar() {
+  Future<void> _entrar() async {
     final codigo = tableCodeController.text.trim();
     if (codigo.isEmpty) return;
 
-    if (codigo == "1234") {
-      // sessionProvider.iniciarSessao(codigo); — adicionar quando integrar
-      context.go(Routes.newComanda, extra: codigo);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Mesa não encontrada"),
-          backgroundColor: Colors.red,
-        ),
-      );
+    setState(() => _isLoading = true);
+
+    try {
+      final tableService = TableService();
+      final table = await tableService.getTableByCode(codigo);
+      
+      if (mounted) {
+        context.go(Routes.newComanda, extra: table.code);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Mesa não encontrada ou código inválido"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -75,7 +86,7 @@ class _SelectTableState extends State<SelectTable> {
                   controller: tableCodeController,
                   textAlign: TextAlign.center,
                   textAlignVertical: TextAlignVertical.center,
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.text, // Mudado para text caso o código tenha letras
                   onSubmitted: (_) => _entrar(),
                   decoration: InputDecoration(
                     hintText: "Table Code",
@@ -98,7 +109,11 @@ class _SelectTableState extends State<SelectTable> {
 
             const SizedBox(height: 8),
 
-            SimpleButton(onTap: _entrar, text: "Select Table"),
+            SimpleButton(
+              onTap: _entrar, 
+              text: "Select Table",
+              isLoading: _isLoading,
+            ),
           ],
         ),
       ),

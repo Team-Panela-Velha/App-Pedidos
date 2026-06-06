@@ -49,6 +49,23 @@ abstract class BaseService {
   /// Recebe o http.Response do ApiService e retorna o Map já parseado.
   /// Lança uma [ApiException] em caso de erro (4xx / 5xx / sem internet).
   Map<String, dynamic> getResponse(http.Response response) {
+
+    // ────────────────────────────────────────────────────────────────────────
+    // LOG DA REQUISIÇÃO
+    // ────────────────────────────────────────────────────────────────────────
+
+    print('');
+    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    print('🌐 REQUEST');
+    print('URL: ${response.request?.url}');
+    print('METHOD: ${response.request?.method}');
+    print('STATUS: ${response.statusCode}');
+    print('');
+    print('📦 RESPONSE BODY:');
+    print(response.body);
+    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    print('');
+
     final statusCode = response.statusCode;
 
     // ── 2xx ────────────────────────────────────────────────────────────────
@@ -67,24 +84,41 @@ abstract class BaseService {
 
     // ── 4xx / 5xx — extrai mensagem e lança exceção ────────────────────────
     Map<String, dynamic>? json;
+
     if (response.body.isNotEmpty) {
       try {
         final decoded = jsonDecode(response.body);
-        if (decoded is Map<String, dynamic>) json = decoded;
-      } catch (_) {}
+
+        if (decoded is Map<String, dynamic>) {
+          json = decoded;
+        }
+      } catch (e) {
+
+        print('❌ Erro ao fazer parse do JSON');
+        print(e);
+
+      }
     }
 
     final message = _extractError(json) ?? _defaultMessage(statusCode);
 
+    print('❌ API ERROR');
+    print('STATUS: $statusCode');
+    print('MESSAGE: $message');
+
     switch (statusCode) {
       case 401:
         throw const UnauthorizedException();
+
       case 403:
         throw const ForbiddenException();
+
       case 404:
         throw const NotFoundException();
+
       case >= 500:
         throw ServerException(message, statusCode: statusCode);
+
       default:
         throw ApiException(message, statusCode: statusCode);
     }
@@ -96,42 +130,18 @@ abstract class BaseService {
 
   String? _extractError(Map<String, dynamic>? json) {
     if (json == null) return null;
+
     // Adapte as chaves conforme sua API retorna o erro
     return (json['message'] ?? json['error'] ?? json['msg'])?.toString();
   }
 
   String _defaultMessage(int statusCode) => switch (statusCode) {
-        400 => 'Requisição inválida.',
-        409 => 'Conflito ao processar a requisição.',
-        422 => 'Dados inválidos.',
-        429 => 'Muitas requisições. Tente novamente mais tarde.',
-        502 => 'Gateway inválido.',
-        503 => 'Serviço indisponível.',
-        _   => 'Erro inesperado ($statusCode).',
-      };
+    400 => 'Requisição inválida.',
+    409 => 'Conflito ao processar a requisição.',
+    422 => 'Dados inválidos.',
+    429 => 'Muitas requisições. Tente novamente mais tarde.',
+    502 => 'Gateway inválido.',
+    503 => 'Serviço indisponível.',
+    _   => 'Erro inesperado ($statusCode).',
+  };
 }
-
-// ---------------------------------------------------------------------------
-// EXEMPLO — UserService
-// ---------------------------------------------------------------------------
-
-/*
-class UserService extends BaseService {
-  final _api = ApiService();
-
-  Future<List<Usuario>> getUsuarios() async {
-    final json = getResponse(await _api.get('/api/usuarios'));
-    return (json['data'] as List).map((e) => Usuario.fromJson(e)).toList();
-  }
-
-  Future<Usuario> getUsuario(int id) async {
-    final json = getResponse(await _api.get('/api/usuarios/$id'));
-    return Usuario.fromJson(json);
-  }
-
-  Future<Usuario> createUsuario(Map<String, dynamic> body) async {
-    final json = getResponse(await _api.post('/api/usuarios', body: body));
-    return Usuario.fromJson(json);
-  }
-}
-*/
