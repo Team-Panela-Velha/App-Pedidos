@@ -54,7 +54,7 @@ Widget productCard(BuildContext context, Product product) {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  fontSize: isLandscape ? 16 : width * 0.035,
+                  fontSize: isLandscape ? 14 : width * 0.035,
                 ),
               ),
 
@@ -71,8 +71,10 @@ Widget productCard(BuildContext context, Product product) {
                 ),
               ),
 
-              const SizedBox(height: 8),
-
+              const SizedBox(height: 4),
+              const Divider(
+                color: AppColors.primary,
+              ),
               /// Preço + Rating na mesma linha
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -110,3 +112,18 @@ Widget productCard(BuildContext context, Product product) {
     ),
   );
 }
+
+Widget _iconButton(IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color(0xFFF4A896),
+      ),
+      child: Icon(
+        icon,
+        size: 16,
+        color: Colors.white,
+      ),
+    );
+  }
