@@ -1,5 +1,4 @@
 import 'package:app_pedidos/core/model/product/product.dart';
-import 'package:app_pedidos/data/mock_data.dart';
 import 'package:app_pedidos/ui/screens/cart/cart_screen.dart';
 import 'package:app_pedidos/ui/screens/category/category_screen.dart';
 import 'package:app_pedidos/ui/screens/home/home_screen.dart';
