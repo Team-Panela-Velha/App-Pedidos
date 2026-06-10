@@ -1,4 +1,5 @@
 import 'package:app_pedidos/core/model/product/product.dart';
+import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:app_pedidos/data/mock_data.dart';
 
