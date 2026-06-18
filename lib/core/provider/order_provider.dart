@@ -1,22 +1,27 @@
 import 'package:app_pedidos/core/bloc/app/app_data.dart';
 import 'package:app_pedidos/core/model/order/order.dart';
 import 'package:app_pedidos/core/model/order/order_item.dart';
+import 'package:app_pedidos/core/model/tab/tab.dart' as model;
 import 'package:app_pedidos/core/service/order_service.dart';
+import 'package:app_pedidos/core/service/tab_service.dart';
 import 'package:app_pedidos/locator.dart';
 import 'package:flutter/material.dart';
 
 class OrderProvider extends ChangeNotifier {
   final OrderService _service = OrderService();
+  final TabService _tabService = TabService();
   final AppData _appData = locator.get<AppData>();
 
   // Itens que estão sendo montados para o pedido atual
   final List<OrderItem> _pendingItems = [];
   
   List<Order> _orders = [];
+  model.Tab? _currentTab;
   bool _isLoading = false;
   String? _error;
 
   List<Order> get orders => _orders;
+  model.Tab? get currentTab => _currentTab;
   List<OrderItem> get pendingItems => _pendingItems;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -76,7 +81,12 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _orders = await _service.getOrdersByTab(tabId);
+      final results = await Future.wait([
+        _service.getOrdersByTab(tabId),
+        _tabService.getTabById(tabId),
+      ]);
+      _orders = results[0] as List<Order>;
+      _currentTab = results[1] as model.Tab;
     } catch (e) {
       _error = e.toString();
     } finally {

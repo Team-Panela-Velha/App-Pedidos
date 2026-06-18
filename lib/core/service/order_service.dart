@@ -13,7 +13,7 @@ class OrderService extends BaseService {
   }
 
   Future<List<Order>> getOrdersByTab(int tabId) async {
-    final response = await _api.get('/orders/by-tab/$tabId');
+    final response = await _api.get('/orders/tab/$tabId');
     final data = getResponse(response);
     final List list = data['data'] ?? [];
     return list.map((json) => Order.fromJson(json)).toList();

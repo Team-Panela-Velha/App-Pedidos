@@ -1,9 +1,13 @@
 import 'package:app_pedidos/core/provider/order_provider.dart';
 import 'package:app_pedidos/core/model/order/order.dart';
+import 'package:app_pedidos/core/service/tab_service.dart';
+import 'package:app_pedidos/core/bloc/app/app_bloc.dart';
+import 'package:app_pedidos/router.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:app_pedidos/ui/widgets/cart/account_summary.dart';
 import 'package:app_pedidos/ui/widgets/simple_button.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 // ---------------------------------------------------------------------------
@@ -52,6 +56,8 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  bool _isClosing = false;
+
   @override
   void initState() {
     super.initState();
@@ -144,15 +150,40 @@ class _CartScreenState extends State<CartScreen> {
 
           // ── Resumo + botão fechar conta ───────────────────────────────────
           if (allItems.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
-              child: SimpleButton(
-                onTap: () {
-                  // Lógica de fechar conta
-                },
-                text: 'Fechar Conta',
-              ),
-            ),
+            _isClosing
+                ? const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : AccountSummary(
+                    totalPrice: orderProvider.currentTab?.totalValue ?? 0.0,
+                    onCloseAccount: () async {
+                      final appBloc = context.read<AppBloc>();
+                      final tabId = appBloc.appData.tabId;
+
+                      if (tabId == null) return;
+
+                      setState(() => _isClosing = true);
+
+                      try {
+                        final tabService = TabService();
+                        await tabService.closeTab(tabId);
+
+                        if (mounted) {
+                          appBloc.endSession();
+                          context.go(Routes.startSession);
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Erro ao fechar conta: $e')),
+                          );
+                        }
+                      } finally {
+                        if (mounted) setState(() => _isClosing = false);
+                      }
+                    },
+                  ),
         ],
       ),
     );
