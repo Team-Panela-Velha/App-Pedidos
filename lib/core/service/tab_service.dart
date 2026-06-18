@@ -12,10 +12,7 @@ class TabService extends BaseService {
   }
 
   Future<Tab> closeTab(int id) async {
-    final response = await _api.put('/tabs/$id/close'); // O controller usa PatchMapping no Java, mas o ApiService tem put/post/get/delete.
-    // Verificando se o ApiService tem patch. Se não tiver, usarei o que for compatível.
-    // Como o controller Java usa @PatchMapping("/{id}/close"), vou assumir que o ApiService deve ser atualizado ou usar o método correto.
-    // Vou usar o put por enquanto ou criar um método customizado se necessário.
+    final response = await _api.patch('/tabs/$id/close');
     final data = getResponse(response);
     return Tab.fromJson(data);
   }
