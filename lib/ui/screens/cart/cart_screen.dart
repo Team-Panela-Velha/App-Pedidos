@@ -120,27 +120,44 @@ class _CartScreenState extends State<CartScreen> {
                               color: AppColors.iconSquareColor,
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item.productName ?? 'Produto',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Quantidade: ${item.quantity}',
-                                      style: TextStyle(
-                                        color: AppColors.textIconSecondary,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
+                                Text(
+                                  item.productName ?? 'Produto',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
+                                Text(
+                                  'Quantidade: ${item.quantity}',
+                                  style: TextStyle(
+                                    color: AppColors.textIconSecondary,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                if (item.observation != null && item.observation!.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Obs: ${item.observation}',
+                                    style: TextStyle(
+                                      color: AppColors.textIconSecondary,
+                                      fontSize: 13,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                                if (item.extras.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Extras: ${item.extras.map((e) => e.name).join(', ')}',
+                                    style: TextStyle(
+                                      color: AppColors.textIconSecondary,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           );

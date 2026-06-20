@@ -36,6 +36,7 @@ class OrderProvider extends ChangeNotifier {
         productName: existingItem.productName,
         quantity: existingItem.quantity + item.quantity,
         observation: item.observation ?? existingItem.observation,
+        extras: item.extras.isNotEmpty ? item.extras : existingItem.extras,
       );
     } else {
       _pendingItems.add(item);
@@ -60,6 +61,7 @@ class OrderProvider extends ChangeNotifier {
           productName: existingItem.productName,
           quantity: quantity,
           observation: existingItem.observation,
+          extras: existingItem.extras,
         );
       }
       notifyListeners();
@@ -105,27 +107,10 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. Criar o pedido (Order)
-      final newOrder = await _service.createOrder(tabId);
+      // 1. Criar o pedido com todos os itens em uma única requisição
+      await _service.createOrder(tabId, items);
 
-      // 2. Adicionar cada item ao pedido
-      for (var item in items) {
-        final itemWithOrder = OrderItem(
-          productId: item.productId,
-          orderId: newOrder.id,
-          quantity: item.quantity,
-          observation: item.observation,
-        );
-        try {
-          await _service.addOrderItem(itemWithOrder);
-        } catch (e) {
-          print('Erro ao adicionar item ${item.productName}: $e');
-          // Opcional: deletar o pedido se um item falhar, ou continuar
-          rethrow;
-        }
-      }
-
-      // 3. Atualizar lista de pedidos
+      // 2. Atualizar lista de pedidos
       await fetchOrdersByTab();
     } catch (e) {
       _error = e.toString();

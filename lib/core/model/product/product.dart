@@ -1,4 +1,5 @@
 import 'package:app_pedidos/core/model/category.dart';
+import 'package:app_pedidos/core/model/order/extra.dart';
 
 class Product {
   final int id;
@@ -7,6 +8,7 @@ class Product {
   final String? image;
   final double price;
   final Category? category;
+  final List<Extra> extras;
 
   Product({
     required this.id,
@@ -15,6 +17,7 @@ class Product {
     this.image,
     required this.price,
     this.category,
+    this.extras = const [],
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -27,6 +30,9 @@ class Product {
       category: json['category'] != null
           ? Category.fromJson(json['category'])
           : null,
+      extras: json['extras'] != null
+          ? (json['extras'] as List).map((i) => Extra.fromJson(i)).toList()
+          : [],
     );
   }
 }

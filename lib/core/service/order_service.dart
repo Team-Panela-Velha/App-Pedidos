@@ -6,8 +6,11 @@ import 'package:app_pedidos/core/service/api_service.dart';
 class OrderService extends BaseService {
   final ApiService _api = ApiService();
 
-  Future<Order> createOrder(int tabId) async {
-    final response = await _api.post('/orders', body: {'tabId': tabId});
+  Future<Order> createOrder(int tabId, List<OrderItem> items) async {
+    final response = await _api.post('/orders', body: {
+      'tabId': tabId,
+      'items': items.map((item) => item.toJson()).toList(),
+    });
     final data = getResponse(response);
     return Order.fromJson(data);
   }
@@ -15,14 +18,8 @@ class OrderService extends BaseService {
   Future<List<Order>> getOrdersByTab(int tabId) async {
     final response = await _api.get('/orders/tab/$tabId');
     final data = getResponse(response);
-    final List list = data['data'] ?? [];
+    final List list = data['data'] ?? []; // BaseService wraps list in { "data": [...] }
     return list.map((json) => Order.fromJson(json)).toList();
-  }
-
-  Future<OrderItem> addOrderItem(OrderItem item) async {
-    final response = await _api.post('/order-items', body: item.toJson());
-    final data = getResponse(response);
-    return OrderItem.fromJson(data);
   }
 
   Future<List<OrderItem>> getOrderItems(int orderId) async {

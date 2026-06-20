@@ -41,7 +41,7 @@ class OrderItem {
       if (orderId != null) 'orderId': orderId,
       'quantity': quantity,
       'observation': observation,
-      // 'extras': extras.map((e) => e.toJson()).toList(), // Se o backend aceitar extras no request
+      'extraIds': extras.map((e) => e.id).toList(),
     };
   }
 }
