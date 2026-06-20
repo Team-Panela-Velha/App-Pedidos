@@ -4,6 +4,7 @@ class OrderItem {
   final int? id;
   final int productId;
   final String? productName;
+  final String? productImage;
   final int? orderId;
   final int quantity;
   final String? observation;
@@ -13,6 +14,7 @@ class OrderItem {
     this.id,
     required this.productId,
     this.productName,
+    this.productImage,
     this.orderId,
     required this.quantity,
     this.observation,
@@ -24,6 +26,7 @@ class OrderItem {
       id: json['id'],
       productId: json['productId'],
       productName: json['productName'],
+      productImage: json['productImage'],
       orderId: json['orderId'],
       quantity: json['quantity'],
       observation: json['observation'],

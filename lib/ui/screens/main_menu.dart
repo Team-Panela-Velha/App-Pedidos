@@ -57,6 +57,11 @@ class _MainMenuState extends State<MainMenu> {
         'path': Routes.category,
       },
       {
+        'icon': Icons.add_circle_outline,
+        'label': 'Criar Produto',
+        'path': Routes.createProduct,
+      },
+      {
         'icon': Icons.receipt_long,
         'label': 'Pedido',
         'path': Routes.order,

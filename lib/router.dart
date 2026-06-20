@@ -1,6 +1,7 @@
 import 'package:app_pedidos/core/model/product/product.dart';
 import 'package:app_pedidos/ui/screens/cart/cart_screen.dart';
 import 'package:app_pedidos/ui/screens/category/category_screen.dart';
+import 'package:app_pedidos/ui/screens/create_product/create_product_screen.dart';
 import 'package:app_pedidos/ui/screens/home/home_screen.dart';
 import 'package:app_pedidos/ui/screens/main_menu.dart';
 import 'package:app_pedidos/ui/screens/add_product/product_screen.dart';
@@ -19,6 +20,7 @@ class Routes {
   static const addProduct = '/add-product';
   static const order = '/order';
   static const cart = '/cart';
+  static const createProduct = '/create-product';
 }
 
 class AppRouter {
@@ -53,6 +55,10 @@ class AppRouter {
               final product = state.extra as Product;
               return ProductScreen(product: product);
             },
+          ),
+          GoRoute(
+            path: Routes.createProduct,
+            builder: (context, state) => const CreateProductScreen(),
           ),
           GoRoute(
             path: Routes.order,

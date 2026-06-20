@@ -141,15 +141,18 @@ class _OrderScreenState extends State<OrderScreen> {
                     itemCount: entries.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
-                      final entry = entries[index];
-                      return _OrderItemCard(
-                        name: entry.productName ?? 'Produto',
-                        quantity: entry.quantity,
-                        onIncrement: () => _increment(entry.productId),
-                        onDecrement: () => _decrement(entry.productId),
-                        onRemove: () => _removeItem(entry.productId),
-                      );
-                    },
+                          final entry = entries[index];
+                          return _OrderItemCard(
+                            name: entry.productName ?? 'Produto',
+                            productImage: entry.productImage,
+                            quantity: entry.quantity,
+                            observation: entry.observation,
+                            extras: entry.extras,
+                            onIncrement: () => _increment(entry.productId),
+                            onDecrement: () => _decrement(entry.productId),
+                            onRemove: () => _removeItem(entry.productId),
+                          );
+                        },
                   ),
           ),
         ],
@@ -216,14 +219,20 @@ class _OrderScreenState extends State<OrderScreen> {
 
 class _OrderItemCard extends StatelessWidget {
   final String name;
+  final String? productImage;
   final int quantity;
+  final String? observation;
+  final List<dynamic> extras;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
   final VoidCallback onRemove;
 
   const _OrderItemCard({
     required this.name,
+    this.productImage,
     required this.quantity,
+    this.observation,
+    this.extras = const [],
     required this.onIncrement,
     required this.onDecrement,
     required this.onRemove,
@@ -238,18 +247,65 @@ class _OrderItemCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(
-              name,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-                color: AppColors.textPrimary,
+          if (productImage != null)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                productImage!,
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
               ),
+            )
+          else
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.fastfood, color: Colors.grey),
+            ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                if (observation != null && observation!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Obs: $observation',
+                    style: TextStyle(
+                      color: AppColors.textIconSecondary,
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+                if (extras.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Extras: ${extras.map((e) => e.name).join(', ')}',
+                    style: TextStyle(
+                      color: AppColors.textIconSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-
           _QtyBtn(icon: Icons.remove, onTap: onDecrement),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -259,9 +315,7 @@ class _OrderItemCard extends StatelessWidget {
             ),
           ),
           _QtyBtn(icon: Icons.add, onTap: onIncrement, filled: true),
-
           const SizedBox(width: 10),
-
           GestureDetector(
             onTap: onRemove,
             child: Container(
@@ -271,8 +325,7 @@ class _OrderItemCard extends StatelessWidget {
                 color: Colors.red.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.delete_outline,
-                  size: 18, color: Colors.red),
+              child: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
             ),
           ),
         ],
