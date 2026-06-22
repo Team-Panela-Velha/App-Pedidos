@@ -63,7 +63,7 @@ Widget productCard(BuildContext context, Product product) {
 
               /// (Opcional) descrição fake tipo da imagem
               Text(
-                "Lorem ipsum dolor sit amet",
+                product.description ?? "Sem descrição",
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
