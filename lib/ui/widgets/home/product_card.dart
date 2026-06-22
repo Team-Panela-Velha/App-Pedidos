@@ -81,7 +81,7 @@ Widget productCard(BuildContext context, Product product) {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    product.price.toString(),
+                    'R\$ ${product.price.toStringAsFixed(2).replaceAll('.', ',')}',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: isLandscape ? 15 : width * 0.032,
