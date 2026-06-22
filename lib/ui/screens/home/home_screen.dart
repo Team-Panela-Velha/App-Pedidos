@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:app_pedidos/core/model/product/product.dart';
 import 'package:app_pedidos/core/provider/product_provider.dart';
+import 'package:app_pedidos/core/service/notification_service.dart';
 import 'package:app_pedidos/data/mock_data.dart';
+import 'package:app_pedidos/locator.dart';
 import 'package:app_pedidos/router.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:app_pedidos/ui/widgets/home/banner_item.dart';
 import 'package:app_pedidos/ui/widgets/home/category_item.dart';
 import 'package:app_pedidos/ui/widgets/home/product_card.dart';
+import 'package:app_pedidos/ui/widgets/simple_button.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -21,10 +24,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final PageController _controller = PageController(viewportFraction: 0.95);
+  final NotificationService _notificationService = locator<NotificationService>();
 
   int currentPage = 0;
 
   late Timer _bannerTimer;
+  StreamSubscription? _notificationSubscription;
 
   @override
   void initState() {
@@ -32,6 +37,18 @@ class _HomePageState extends State<HomePage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductProvider>().getProducts();
+    });
+
+    // Escutar notificações
+    _notificationSubscription = _notificationService.notifications.listen((event) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${event.title}: ${event.body}'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+      }
     });
 
     _bannerTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
@@ -54,8 +71,17 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _bannerTimer.cancel();
+    _notificationSubscription?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _testNotification() async {
+    await _notificationService.showNotification(
+      title: 'Teste de Notificação',
+      body: 'Esta é uma notificação de teste!',
+      data: {'teste': 'valor'},
+    );
   }
 
   @override
@@ -295,6 +321,15 @@ class _HomePageState extends State<HomePage> {
                       );
                     },
                   ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: SimpleButton(
+                      onTap: _testNotification,
+                      text: 'Testar Notificação',
+                    ),
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),

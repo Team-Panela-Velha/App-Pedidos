@@ -4,6 +4,7 @@ import 'package:app_pedidos/ui/screens/category/category_screen.dart';
 import 'package:app_pedidos/ui/screens/create_product/create_product_screen.dart';
 import 'package:app_pedidos/ui/screens/home/home_screen.dart';
 import 'package:app_pedidos/ui/screens/main_menu.dart';
+import 'package:app_pedidos/ui/screens/notification_test/notification_test_screen.dart';
 import 'package:app_pedidos/ui/screens/add_product/product_screen.dart';
 import 'package:app_pedidos/ui/screens/order/order_screen.dart';
 import 'package:app_pedidos/ui/screens/session/new_tab.dart';
@@ -21,6 +22,7 @@ class Routes {
   static const order = '/order';
   static const cart = '/cart';
   static const createProduct = '/create-product';
+  static const notificationTest = '/notification-test';
 }
 
 class AppRouter {
@@ -57,9 +59,13 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: Routes.createProduct,
-            builder: (context, state) => const CreateProductScreen(),
-          ),
+                    path: Routes.createProduct,
+                    builder: (context, state) => const CreateProductScreen(),
+                  ),
+                  GoRoute(
+                    path: Routes.notificationTest,
+                    builder: (context, state) => const NotificationTestScreen(),
+                  ),
           GoRoute(
             path: Routes.order,
             builder: (context, state) => const OrderScreen(),

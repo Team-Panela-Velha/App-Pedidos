@@ -2,14 +2,17 @@ import 'package:app_pedidos/core/bloc/app/app_bloc.dart';
 import 'package:app_pedidos/core/provider/cart_provider.dart';
 import 'package:app_pedidos/core/provider/order_provider.dart';
 import 'package:app_pedidos/core/provider/product_provider.dart';
+import 'package:app_pedidos/core/service/notification_service.dart';
 import 'package:app_pedidos/locator.dart';
 import 'package:app_pedidos/router.dart';
 import 'package:app_pedidos/theme/app_themes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   setupLocator();
+  // await locator<NotificationService>().initialize();
 
   runApp(
     MultiProvider(

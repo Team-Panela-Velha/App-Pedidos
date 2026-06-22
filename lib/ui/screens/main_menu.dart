@@ -61,6 +61,11 @@ class _MainMenuState extends State<MainMenu> {
         'label': 'Criar Produto',
         'path': Routes.createProduct,
       },
+      // {
+      //   'icon': Icons.notifications,
+      //   'label': 'Testar Notificações',
+      //   'path': Routes.notificationTest,
+      // },
       {
         'icon': Icons.receipt_long,
         'label': 'Pedido',
