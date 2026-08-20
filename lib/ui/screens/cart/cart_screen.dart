@@ -115,31 +115,94 @@ class _CartScreenState extends State<CartScreen> {
                         itemBuilder: (context, index) {
                           final item = allItems[index];
                           return Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: AppColors.iconSquareColor,
                               borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item.productName ?? 'Produto',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                _ProductImage(imageUrl: item.productImage, size: 72),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        item.productName ?? 'Produto',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
-                                    Text(
-                                      'Quantidade: ${item.quantity}',
-                                      style: TextStyle(
-                                        color: AppColors.textIconSecondary,
-                                        fontSize: 14,
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withOpacity(0.12),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              'Qtd: ${item.quantity}',
+                                              style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
+                                      if (item.observation != null &&
+                                          item.observation!.isNotEmpty) ...[
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          'Obs: ${item.observation}',
+                                          style: TextStyle(
+                                            color: AppColors.textIconSecondary,
+                                            fontSize: 13,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                      if (item.extras.isNotEmpty) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Extras: ${item.extras.map((e) => e.name).join(', ')}',
+                                          style: TextStyle(
+                                            color: AppColors.textIconSecondary,
+                                            fontSize: 13,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -212,6 +275,86 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Widget de imagem do produto com loading e erro
+// ---------------------------------------------------------------------------
+
+class _ProductImage extends StatelessWidget {
+  final String? imageUrl;
+  final double size;
+
+  const _ProductImage({required this.imageUrl, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.grey.shade100,
+            Colors.grey.shade200,
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: imageUrl == null || imageUrl!.isEmpty
+          ? Center(
+              child: Icon(
+                Icons.restaurant_menu,
+                size: size * 0.45,
+                color: Colors.grey.shade400,
+              ),
+            )
+          : Image.network(
+              imageUrl!,
+              fit: BoxFit.cover,
+              width: size,
+              height: size,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: SizedBox(
+                    width: size * 0.4,
+                    height: size * 0.4,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.primary,
+                      ),
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return Center(
+                  child: Icon(
+                    Icons.broken_image_outlined,
+                    size: size * 0.45,
+                    color: Colors.grey.shade400,
+                  ),
+                );
+              },
+            ),
     );
   }
 }

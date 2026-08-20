@@ -1,4 +1,5 @@
 import 'package:app_pedidos/core/model/order/order_item.dart';
+import 'package:app_pedidos/core/model/order/extra.dart';
 import 'package:app_pedidos/core/model/product/product.dart';
 import 'package:app_pedidos/core/provider/order_provider.dart';
 import 'package:app_pedidos/router.dart';
@@ -20,6 +21,8 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   int _quantity = 1;
+  List<Extra> _selectedExtras = [];
+  String _observation = '';
 
   void _addToCart() {
     final orderProvider = context.read<OrderProvider>();
@@ -28,7 +31,8 @@ class _ProductScreenState extends State<ProductScreen> {
       productId: widget.product.id,
       productName: widget.product.name,
       quantity: _quantity,
-      // observation pode vir de um campo de texto futuro
+      observation: _observation.isEmpty ? null : _observation,
+      extras: _selectedExtras,
     );
 
     orderProvider.addItemToPending(item);
@@ -90,7 +94,15 @@ class _ProductScreenState extends State<ProductScreen> {
                   ),
 
                   const SizedBox(height: 24),
-                  const ProductOptions(),
+                  ProductOptions(
+                    extras: widget.product.extras,
+                    onChanged: (selectedExtras, observation) {
+                      setState(() {
+                        _selectedExtras = selectedExtras;
+                        _observation = observation;
+                      });
+                    },
+                  ),
                   const SizedBox(height: 32),    
                   
                   Center(

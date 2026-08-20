@@ -16,17 +16,32 @@ class ProductService extends BaseService {
     return Product.fromJson(response);
   }
 
-  // Future<void> createProduct(Map<String, dynamic> body) async {
-  //   await apiService.post('/products', body);
-  // }
+  Future<Product> createProduct({
+    required String name,
+    required double price,
+    String? description,
+    String? image,
+    int? categoryId,
+    bool available = true,
+  }) async {
+    final response = getResponse(
+      await apiService.post('/products', body: {
+        'name': name,
+        'price': price,
+        'description': description,
+        'image': image,
+        'categoryId': categoryId,
+        'available': available,
+      }),
+    );
+    return Product.fromJson(response);
+  }
 
-  // Future<void> updateProduct(int id, Map<String, dynamic> body) async {
-  //   await apiService.put('/products/$id', body);
-  // }
+  Future<void> updateProduct(int id, Map<String, dynamic> body) async {
+    await apiService.put('/products/$id', body: body);
+  }
 
-  // Future<void> deleteProduct(int id) async {
-  //   await apiService.delete('/products/$id');
-  // }
-
-  // getProductExtras
+  Future<void> deleteProduct(int id) async {
+    await apiService.delete('/products/$id');
+  }
 }

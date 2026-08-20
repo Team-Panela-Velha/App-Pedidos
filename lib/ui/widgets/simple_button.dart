@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
 
 class SimpleButton extends StatelessWidget {
-  final VoidCallback onTap;
+  final Function() onTap;
   final String text;
   final bool isLoading;
 
