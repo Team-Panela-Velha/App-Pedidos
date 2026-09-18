@@ -8,6 +8,8 @@ class Product {
   final String? image;
   final double price;
   final Category? category;
+  final int? categoryId;
+  final bool available;
   final List<Extra> extras;
 
   Product({
@@ -17,6 +19,8 @@ class Product {
     this.image,
     required this.price,
     this.category,
+    this.categoryId,
+    this.available = true,
     this.extras = const [],
   });
 
@@ -30,6 +34,8 @@ class Product {
       category: json['category'] != null
           ? Category.fromJson(json['category'])
           : null,
+      categoryId: json['categoryId'] ?? json['category']?['id'],
+      available: json['available'] != false,
       extras: json['extras'] != null
           ? (json['extras'] as List).map((i) => Extra.fromJson(i)).toList()
           : [],

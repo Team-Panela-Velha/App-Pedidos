@@ -11,6 +11,29 @@ class ProductService extends BaseService {
     return (response['data'] as List).map((e) => Product.fromJson(e)).toList();
   }
 
+  Future<List<Product>> getProductsByCategory(int categoryId) async {
+    final response = getResponse(
+      await apiService.get('/products/category/$categoryId?available=true'),
+    );
+    return (response['data'] as List).map((e) => Product.fromJson(e)).toList();
+  }
+
+  Future<List<Product>> searchProducts({
+    String? keyword,
+    int? categoryId,
+    bool? available,
+  }) async {
+    final query = <String, String>{
+      if (keyword != null && keyword.trim().isNotEmpty)
+        'keyword': keyword.trim(),
+      if (categoryId != null) 'categoryId': '$categoryId',
+      if (available != null) 'available': '$available',
+    };
+    final uri = Uri(path: '/products/search', queryParameters: query);
+    final response = getResponse(await apiService.get(uri.toString()));
+    return (response['data'] as List).map((e) => Product.fromJson(e)).toList();
+  }
+
   Future<Product> getProductById(int id) async {
     final response = getResponse(await apiService.get('/products/$id'));
     return Product.fromJson(response);
@@ -25,14 +48,17 @@ class ProductService extends BaseService {
     bool available = true,
   }) async {
     final response = getResponse(
-      await apiService.post('/products', body: {
-        'name': name,
-        'price': price,
-        'description': description,
-        'image': image,
-        'categoryId': categoryId,
-        'available': available,
-      }),
+      await apiService.post(
+        '/products',
+        body: {
+          'name': name,
+          'price': price,
+          'description': description,
+          'image': image,
+          'categoryId': categoryId,
+          'available': available,
+        },
+      ),
     );
     return Product.fromJson(response);
   }

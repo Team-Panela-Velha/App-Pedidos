@@ -1,7 +1,6 @@
 import 'package:app_pedidos/core/model/product/product.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:app_pedidos/data/mock_data.dart';
 
 Widget productCard(BuildContext context, Product product) {
   final width = MediaQuery.of(context).size.width;
@@ -39,6 +38,8 @@ Widget productCard(BuildContext context, Product product) {
                   product.image!,
                   fit: BoxFit.cover,
                   width: double.infinity,
+                  errorBuilder: (context, error, stack) =>
+                      const Center(child: Icon(Icons.broken_image_outlined)),
                 ),
         ),
 
@@ -73,15 +74,14 @@ Widget productCard(BuildContext context, Product product) {
               ),
 
               const SizedBox(height: 4),
-              const Divider(
-                color: AppColors.primary,
-              ),
+              const Divider(color: AppColors.primary),
+
               /// Preço + Rating na mesma linha
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    product.price.toString(),
+                    'R\$ ${product.price.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: isLandscape ? 15 : width * 0.032,
@@ -113,18 +113,3 @@ Widget productCard(BuildContext context, Product product) {
     ),
   );
 }
-
-Widget _iconButton(IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Color(0xFFF4A896),
-      ),
-      child: Icon(
-        icon,
-        size: 16,
-        color: Colors.white,
-      ),
-    );
-  }

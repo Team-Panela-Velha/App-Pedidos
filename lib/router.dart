@@ -1,7 +1,7 @@
 import 'package:app_pedidos/core/model/product/product.dart';
 import 'package:app_pedidos/ui/screens/cart/cart_screen.dart';
 import 'package:app_pedidos/ui/screens/category/category_screen.dart';
-import 'package:app_pedidos/ui/screens/create_product/create_product_screen.dart';
+import 'package:app_pedidos/ui/screens/category/product_results_screen.dart';
 import 'package:app_pedidos/ui/screens/home/home_screen.dart';
 import 'package:app_pedidos/ui/screens/main_menu.dart';
 import 'package:app_pedidos/ui/screens/add_product/product_screen.dart';
@@ -17,10 +17,12 @@ class Routes {
   static const newComanda = '/comanda';
   static const home = '/home';
   static const category = '/category';
+  static String categoryProductsPath(int categoryId) =>
+      '/category/$categoryId/products';
+  static const search = '/search';
   static const addProduct = '/add-product';
   static const order = '/order';
   static const cart = '/cart';
-  static const createProduct = '/create-product';
 }
 
 class AppRouter {
@@ -50,15 +52,24 @@ class AppRouter {
             builder: (context, state) => CategoryScreen(),
           ),
           GoRoute(
+            path: '/category/:categoryId/products',
+            builder: (context, state) => ProductResultsScreen(
+              categoryId: int.parse(state.pathParameters['categoryId']!),
+              categoryName: state.extra as String?,
+            ),
+          ),
+          GoRoute(
+            path: Routes.search,
+            builder: (context, state) => ProductResultsScreen(
+              keyword: state.uri.queryParameters['keyword'],
+            ),
+          ),
+          GoRoute(
             path: Routes.addProduct,
             builder: (context, state) {
               final product = state.extra as Product;
               return ProductScreen(product: product);
             },
-          ),
-          GoRoute(
-            path: Routes.createProduct,
-            builder: (context, state) => const CreateProductScreen(),
           ),
           GoRoute(
             path: Routes.order,

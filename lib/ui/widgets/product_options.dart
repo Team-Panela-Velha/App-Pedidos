@@ -3,11 +3,15 @@ import 'package:flutter/material.dart';
 
 class ProductOptions extends StatefulWidget {
   final List<Extra> extras;
+  final List<Extra> initialExtras;
+  final String initialObservation;
   final Function(List<Extra> selectedExtras, String observation) onChanged;
 
   const ProductOptions({
     super.key,
     required this.extras,
+    this.initialExtras = const [],
+    this.initialObservation = '',
     required this.onChanged,
   });
 
@@ -17,11 +21,15 @@ class ProductOptions extends StatefulWidget {
 
 class _ProductOptionsState extends State<ProductOptions> {
   final Set<int> _selectedExtraIds = {};
-  final TextEditingController _observationController = TextEditingController();
+  late final TextEditingController _observationController;
 
   @override
   void initState() {
     super.initState();
+    _selectedExtraIds.addAll(widget.initialExtras.map((extra) => extra.id));
+    _observationController = TextEditingController(
+      text: widget.initialObservation,
+    );
     _observationController.addListener(_notifyChanges);
   }
 
@@ -63,10 +71,7 @@ class _ProductOptionsState extends State<ProductOptions> {
                     SizedBox(height: 4),
                     Text(
                       'Escolha os extras desejados',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.black54,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.black54),
                     ),
                   ],
                 ),

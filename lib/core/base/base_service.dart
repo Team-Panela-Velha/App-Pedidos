@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 
 // ---------------------------------------------------------------------------
@@ -18,17 +17,15 @@ class ApiException implements Exception {
 
 class UnauthorizedException extends ApiException {
   const UnauthorizedException()
-      : super('Não autorizado. Faça login novamente.', statusCode: 401);
+    : super('Não autorizado. Faça login novamente.', statusCode: 401);
 }
 
 class ForbiddenException extends ApiException {
-  const ForbiddenException()
-      : super('Acesso negado.', statusCode: 403);
+  const ForbiddenException() : super('Acesso negado.', statusCode: 403);
 }
 
 class NotFoundException extends ApiException {
-  const NotFoundException()
-      : super('Recurso não encontrado.', statusCode: 404);
+  const NotFoundException() : super('Recurso não encontrado.', statusCode: 404);
 }
 
 class ServerException extends ApiException {
@@ -37,7 +34,7 @@ class ServerException extends ApiException {
 
 class NoInternetException extends ApiException {
   const NoInternetException()
-      : super('Sem conexão com a internet.', statusCode: 0);
+    : super('Sem conexão com a internet.', statusCode: 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -45,27 +42,9 @@ class NoInternetException extends ApiException {
 // ---------------------------------------------------------------------------
 
 abstract class BaseService {
-
   /// Recebe o http.Response do ApiService e retorna o Map já parseado.
   /// Lança uma [ApiException] em caso de erro (4xx / 5xx / sem internet).
   Map<String, dynamic> getResponse(http.Response response) {
-
-    // ────────────────────────────────────────────────────────────────────────
-    // LOG DA REQUISIÇÃO
-    // ────────────────────────────────────────────────────────────────────────
-
-    print('');
-    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    print('🌐 REQUEST');
-    print('URL: ${response.request?.url}');
-    print('METHOD: ${response.request?.method}');
-    print('STATUS: ${response.statusCode}');
-    print('');
-    print('📦 RESPONSE BODY:');
-    print(response.body);
-    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    print('');
-
     final statusCode = response.statusCode;
 
     // ── 2xx ────────────────────────────────────────────────────────────────
@@ -92,19 +71,10 @@ abstract class BaseService {
         if (decoded is Map<String, dynamic>) {
           json = decoded;
         }
-      } catch (e) {
-
-        print('❌ Erro ao fazer parse do JSON');
-        print(e);
-
-      }
+      } catch (_) {}
     }
 
     final message = _extractError(json) ?? _defaultMessage(statusCode);
-
-    print('❌ API ERROR');
-    print('STATUS: $statusCode');
-    print('MESSAGE: $message');
 
     switch (statusCode) {
       case 401:
@@ -142,6 +112,6 @@ abstract class BaseService {
     429 => 'Muitas requisições. Tente novamente mais tarde.',
     502 => 'Gateway inválido.',
     503 => 'Serviço indisponível.',
-    _   => 'Erro inesperado ($statusCode).',
+    _ => 'Erro inesperado ($statusCode).',
   };
 }

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:app_pedidos/core/bloc/app/app_data.dart';
 import 'package:app_pedidos/core/model/order/order.dart';
 import 'package:app_pedidos/core/model/order/order_item.dart';
@@ -14,7 +16,8 @@ class OrderProvider extends ChangeNotifier {
 
   // Itens que estão sendo montados para o pedido atual
   final List<OrderItem> _pendingItems = [];
-  
+  String? _submissionId;
+
   List<Order> _orders = [];
   model.Tab? _currentTab;
   bool _isLoading = false;
@@ -22,36 +25,36 @@ class OrderProvider extends ChangeNotifier {
 
   List<Order> get orders => _orders;
   model.Tab? get currentTab => _currentTab;
-  List<OrderItem> get pendingItems => _pendingItems;
+  List<OrderItem> get pendingItems => List.unmodifiable(_pendingItems);
   bool get isLoading => _isLoading;
   String? get error => _error;
 
   void addItemToPending(OrderItem item) {
-    // Verifica se já existe o produto no pedido pendente
-    final index = _pendingItems.indexWhere((i) => i.productId == item.productId);
-    if (index != -1) {
-      final existingItem = _pendingItems[index];
-      _pendingItems[index] = OrderItem(
-        productId: existingItem.productId,
-        productName: existingItem.productName,
-        quantity: existingItem.quantity + item.quantity,
-        observation: item.observation ?? existingItem.observation,
-        extras: item.extras.isNotEmpty ? item.extras : existingItem.extras,
-      );
-    } else {
-      _pendingItems.add(item);
-    }
+    if (_isLoading) return;
+    _pendingItems.add(item);
+    _submissionId = null;
     notifyListeners();
   }
 
-  void removeItemFromPending(int productId) {
-    _pendingItems.removeWhere((i) => i.productId == productId);
+  void removeItemFromPending(int index) {
+    if (_isLoading) return;
+    if (index < 0 || index >= _pendingItems.length) return;
+    _pendingItems.removeAt(index);
+    _submissionId = null;
     notifyListeners();
   }
 
-  void updatePendingItemQuantity(int productId, int quantity) {
-    final index = _pendingItems.indexWhere((i) => i.productId == productId);
-    if (index != -1) {
+  void replacePendingItem(int index, OrderItem item) {
+    if (_isLoading) return;
+    if (index < 0 || index >= _pendingItems.length) return;
+    _pendingItems[index] = item;
+    _submissionId = null;
+    notifyListeners();
+  }
+
+  void updatePendingItemQuantity(int index, int quantity) {
+    if (_isLoading) return;
+    if (index >= 0 && index < _pendingItems.length) {
       if (quantity <= 0) {
         _pendingItems.removeAt(index);
       } else {
@@ -59,17 +62,30 @@ class OrderProvider extends ChangeNotifier {
         _pendingItems[index] = OrderItem(
           productId: existingItem.productId,
           productName: existingItem.productName,
+          productImage: existingItem.productImage,
+          unitPrice: existingItem.unitPrice,
           quantity: quantity,
           observation: existingItem.observation,
           extras: existingItem.extras,
         );
       }
+      _submissionId = null;
       notifyListeners();
     }
   }
 
   void clearPendingItems() {
     _pendingItems.clear();
+    _submissionId = null;
+    notifyListeners();
+  }
+
+  void resetSession() {
+    _pendingItems.clear();
+    _orders = [];
+    _currentTab = null;
+    _submissionId = null;
+    _error = null;
     notifyListeners();
   }
 
@@ -99,6 +115,7 @@ class OrderProvider extends ChangeNotifier {
 
   /// Cria um novo pedido e adiciona os itens a ele
   Future<void> placeOrder(List<OrderItem> items) async {
+    if (_isLoading) return;
     final tabId = _appData.tabId;
     if (tabId == null) throw Exception('Nenhuma mesa ativa selecionada');
 
@@ -108,7 +125,12 @@ class OrderProvider extends ChangeNotifier {
 
     try {
       // 1. Criar o pedido com todos os itens em uma única requisição
-      await _service.createOrder(tabId, items);
+      _submissionId ??=
+          '${DateTime.now().microsecondsSinceEpoch}-${List.generate(4, (_) => Random.secure().nextInt(0x100000000).toRadixString(16).padLeft(8, '0')).join()}';
+      await _service.createOrder(tabId, items, clientRequestId: _submissionId);
+      _pendingItems.clear();
+      _submissionId = null;
+      notifyListeners();
 
       // 2. Atualizar lista de pedidos
       await fetchOrdersByTab();

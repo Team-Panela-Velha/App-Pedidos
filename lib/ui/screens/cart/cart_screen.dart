@@ -1,11 +1,9 @@
 import 'package:app_pedidos/core/provider/order_provider.dart';
-import 'package:app_pedidos/core/model/order/order.dart';
 import 'package:app_pedidos/core/service/tab_service.dart';
 import 'package:app_pedidos/core/bloc/app/app_bloc.dart';
 import 'package:app_pedidos/router.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:app_pedidos/ui/widgets/cart/account_summary.dart';
-import 'package:app_pedidos/ui/widgets/simple_button.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -38,8 +36,7 @@ class CartItem {
     this.additionals = const [],
   });
 
-  double get additionalsTotal =>
-      additionals.fold(0, (sum, a) => sum + a.price);
+  double get additionalsTotal => additionals.fold(0, (sum, a) => sum + a.price);
 
   double get total => (unitPrice + additionalsTotal) * quantity;
 }
@@ -62,7 +59,7 @@ class _CartScreenState extends State<CartScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrderProvider>().fetchOrdersByTab(); 
+      context.read<OrderProvider>().fetchOrdersByTab();
     });
   }
 
@@ -86,11 +83,16 @@ class _CartScreenState extends State<CartScreen> {
                 Text(
                   'Minha Conta', // Mudado de Carrinho para Minha Conta
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const Spacer(),
+                IconButton(
+                  tooltip: 'Atualizar conta',
+                  onPressed: orderProvider.isLoading ? null : orderProvider.fetchOrdersByTab,
+                  icon: const Icon(Icons.refresh),
+                ),
                 Text(
                   '${allItems.length} ${allItems.length == 1 ? 'item' : 'itens'}',
                   style: TextStyle(
@@ -106,113 +108,131 @@ class _CartScreenState extends State<CartScreen> {
           Expanded(
             child: orderProvider.isLoading
                 ? const Center(child: CircularProgressIndicator())
+                : orderProvider.error != null
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('Não foi possível atualizar sua conta.'),
+                        TextButton(
+                          onPressed: orderProvider.fetchOrdersByTab,
+                          child: const Text('Tentar novamente'),
+                        ),
+                      ],
+                    ),
+                  )
                 : allItems.isEmpty
-                    ? _emptyState(context)
-                    : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                        itemCount: allItems.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final item = allItems[index];
-                          return Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.iconSquareColor,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.04),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
+                ? _emptyState(context)
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                    itemCount: allItems.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final item = allItems[index];
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.iconSquareColor,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 12,
+                              offset: const Offset(0, 2),
                             ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                _ProductImage(imageUrl: item.productImage, size: 72),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                          ],
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            _ProductImage(
+                              imageUrl: item.productImage,
+                              size: 72,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    item.productName ?? 'Produto',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
                                     children: [
-                                      Text(
-                                        item.productName ?? 'Produto',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 16,
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
                                         ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                                  .withOpacity(0.12),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              'Qtd: ${item.quantity}',
-                                              style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withOpacity(0.12),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
                                           ),
-                                        ],
-                                      ),
-                                      if (item.observation != null &&
-                                          item.observation!.isNotEmpty) ...[
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          'Obs: ${item.observation}',
+                                        ),
+                                        child: Text(
+                                          'Qtd: ${item.quantity}',
                                           style: TextStyle(
-                                            color: AppColors.textIconSecondary,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                             fontSize: 13,
-                                            fontStyle: FontStyle.italic,
+                                            fontWeight: FontWeight.w600,
                                           ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ],
-                                      if (item.extras.isNotEmpty) ...[
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Extras: ${item.extras.map((e) => e.name).join(', ')}',
-                                          style: TextStyle(
-                                            color: AppColors.textIconSecondary,
-                                            fontSize: 13,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
+                                      ),
                                     ],
                                   ),
-                                ),
-                              ],
+                                  if (item.observation != null &&
+                                      item.observation!.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Obs: ${item.observation}',
+                                      style: TextStyle(
+                                        color: AppColors.textIconSecondary,
+                                        fontSize: 13,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                  if (item.extras.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Extras: ${item.extras.map((e) => e.name).join(', ')}',
+                                      style: TextStyle(
+                                        color: AppColors.textIconSecondary,
+                                        fontSize: 13,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                      Text('Status: ${item.statusLabel}'),
+                                ],
+                              ),
                             ),
-                          );
-                        },
-                      ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
           ),
 
           // ── Resumo + botão fechar conta ───────────────────────────────────
-          if (allItems.isNotEmpty)
+          if (orderProvider.currentTab != null && !orderProvider.currentTab!.closed)
             _isClosing
                 ? const Padding(
                     padding: EdgeInsets.all(20),
@@ -221,6 +241,28 @@ class _CartScreenState extends State<CartScreen> {
                 : AccountSummary(
                     totalPrice: orderProvider.currentTab?.totalValue ?? 0.0,
                     onCloseAccount: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Fechar comanda?'),
+                          content: Text(
+                          orderProvider.pendingItems.isEmpty
+                              ? 'Depois de fechada, a comanda não poderá receber novos pedidos.'
+                              : 'Itens ainda não enviados serão descartados. Depois de fechada, a comanda não poderá receber novos pedidos.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Voltar'),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Fechar'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirm != true || !context.mounted) return;
                       final appBloc = context.read<AppBloc>();
                       final tabId = appBloc.appData.tabId;
 
@@ -232,12 +274,13 @@ class _CartScreenState extends State<CartScreen> {
                         final tabService = TabService();
                         await tabService.closeTab(tabId);
 
-                        if (mounted) {
+                        if (context.mounted) {
+                          context.read<OrderProvider>().resetSession();
                           appBloc.endSession();
                           context.go(Routes.startSession);
                         }
                       } catch (e) {
-                        if (mounted) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Erro ao fechar conta: $e')),
                           );
@@ -257,8 +300,11 @@ class _CartScreenState extends State<CartScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.shopping_cart_outlined,
-              size: 64, color: AppColors.textIconSecondary),
+          Icon(
+            Icons.shopping_cart_outlined,
+            size: 64,
+            color: AppColors.textIconSecondary,
+          ),
           const SizedBox(height: 16),
           const Text(
             'Nenhum pedido realizado',
@@ -299,10 +345,7 @@ class _ProductImage extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.grey.shade100,
-            Colors.grey.shade200,
-          ],
+          colors: [Colors.grey.shade100, Colors.grey.shade200],
         ),
         boxShadow: [
           BoxShadow(
@@ -339,7 +382,7 @@ class _ProductImage extends StatelessWidget {
                       ),
                       value: loadingProgress.expectedTotalBytes != null
                           ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
+                                loadingProgress.expectedTotalBytes!
                           : null,
                     ),
                   ),
