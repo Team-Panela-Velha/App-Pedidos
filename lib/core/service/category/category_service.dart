@@ -10,4 +10,9 @@ class CategoryService extends BaseService {
     final response = getResponse(await apiService.get('/categories'));
     return (response['data'] as List).map((e) => Category.fromJson(e)).toList();
   }
+
+  Future<Category> getCategoryById(int id) async {
+    final response = getResponse(await apiService.get('/categories/$id'));
+    return Category.fromJson(response);
+  }
 }

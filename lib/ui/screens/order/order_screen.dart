@@ -1,27 +1,11 @@
 import 'package:app_pedidos/core/model/order/order_item.dart';
 import 'package:app_pedidos/core/provider/order_provider.dart';
+import 'package:app_pedidos/core/service/product/product_service.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:app_pedidos/ui/widgets/simple_button.dart';
+import 'package:app_pedidos/ui/widgets/product_options.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-// ---------------------------------------------------------------------------
-// Modelo interno do pedido em andamento
-// ---------------------------------------------------------------------------
-
-class _OrderEntry {
-  final String id;
-  final String name;
-  final double unitPrice;
-  int quantity;
-
-  _OrderEntry({
-    required this.id,
-    required this.name,
-    required this.unitPrice,
-    this.quantity = 1,
-  });
-}
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -39,25 +23,123 @@ class _OrderScreenState extends State<OrderScreen> {
 
   // ── Ações ─────────────────────────────────────────────────────────────────
 
-  void _increment(int productId) {
+  void _increment(int index) {
     final orderProvider = context.read<OrderProvider>();
-    final item = orderProvider.pendingItems.firstWhere((i) => i.productId == productId);
-    orderProvider.updatePendingItemQuantity(productId, item.quantity + 1);
+    final item = orderProvider.pendingItems[index];
+    orderProvider.updatePendingItemQuantity(index, item.quantity + 1);
   }
 
-  void _decrement(int productId) {
+  void _decrement(int index) {
     final orderProvider = context.read<OrderProvider>();
-    final item = orderProvider.pendingItems.firstWhere((i) => i.productId == productId);
-    orderProvider.updatePendingItemQuantity(productId, item.quantity - 1);
+    final item = orderProvider.pendingItems[index];
+    orderProvider.updatePendingItemQuantity(index, item.quantity - 1);
   }
 
-  void _removeItem(int productId) {
-    context.read<OrderProvider>().removeItemFromPending(productId);
+  void _removeItem(int index) {
+    context.read<OrderProvider>().removeItemFromPending(index);
+  }
+
+  Future<void> _editItem(int index, OrderItem item) async {
+    try {
+      final product = await ProductService().getProductById(item.productId);
+      if (!mounted) return;
+      if (!product.available) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Este produto ficou indisponível. Remova-o do pedido.',
+            ),
+          ),
+        );
+        return;
+      }
+      var selectedExtras = item.extras;
+      var observation = item.observation ?? '';
+      final saved = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        builder: (sheetContext) => Padding(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            MediaQuery.viewInsetsOf(sheetContext).bottom + 20,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Editar ${product.name}',
+                  style: Theme.of(sheetContext).textTheme.titleLarge,
+                ),
+                ProductOptions(
+                  extras: product.extras,
+                  initialExtras: item.extras,
+                  initialObservation: observation,
+                  onChanged: (extras, note) {
+                    selectedExtras = extras;
+                    observation = note;
+                  },
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(sheetContext, true),
+                  child: const Text('Salvar'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      if (saved == true && mounted) {
+        context.read<OrderProvider>().replacePendingItem(
+          index,
+          OrderItem(
+            productId: product.id,
+            productName: product.name,
+            productImage: product.image,
+            unitPrice: product.price,
+            quantity: item.quantity,
+            extras: selectedExtras,
+            observation: observation.trim().isEmpty ? null : observation.trim(),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível editar o item. Tente novamente.'),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _placeOrder() async {
     final orderProvider = context.read<OrderProvider>();
-    if (orderProvider.pendingItems.isEmpty) return;
+    if (orderProvider.pendingItems.isEmpty || orderProvider.isLoading) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Enviar pedido?'),
+        content: const Text(
+          'Após o envio, os itens serão encaminhados para a cozinha.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Voltar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Enviar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted || orderProvider.isLoading) return;
 
     try {
       // O OrderProvider agora usa o tabId dinâmico do AppData
@@ -77,9 +159,6 @@ class _OrderScreenState extends State<OrderScreen> {
             behavior: SnackBarBehavior.floating,
           ),
         );
-
-        // Limpa itens pendentes após sucesso
-        orderProvider.clearPendingItems();
       }
     } catch (e) {
       if (mounted) {
@@ -141,18 +220,19 @@ class _OrderScreenState extends State<OrderScreen> {
                     itemCount: entries.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
-                          final entry = entries[index];
-                          return _OrderItemCard(
-                            name: entry.productName ?? 'Produto',
-                            productImage: entry.productImage,
-                            quantity: entry.quantity,
-                            observation: entry.observation,
-                            extras: entry.extras,
-                            onIncrement: () => _increment(entry.productId),
-                            onDecrement: () => _decrement(entry.productId),
-                            onRemove: () => _removeItem(entry.productId),
-                          );
-                        },
+                      final entry = entries[index];
+                      return _OrderItemCard(
+                        name: entry.productName ?? 'Produto',
+                        productImage: entry.productImage,
+                        quantity: entry.quantity,
+                        observation: entry.observation,
+                        extras: entry.extras,
+                        onIncrement: () => _increment(index),
+                        onDecrement: () => _decrement(index),
+                        onRemove: () => _removeItem(index),
+                        onEdit: () => _editItem(index, entry),
+                      );
+                    },
                   ),
           ),
         ],
@@ -176,6 +256,9 @@ class _OrderScreenState extends State<OrderScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Text(
+                    'Total estimado: R\$ ${entries.fold<double>(0, (sum, item) => sum + item.estimatedTotal).toStringAsFixed(2)}',
+                  ),
                   SimpleButton(
                     onTap: _placeOrder,
                     text: 'Enviar para Cozinha',
@@ -192,8 +275,11 @@ class _OrderScreenState extends State<OrderScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.receipt_long_outlined,
-              size: 64, color: AppColors.textIconSecondary),
+          Icon(
+            Icons.receipt_long_outlined,
+            size: 64,
+            color: AppColors.textIconSecondary,
+          ),
           const SizedBox(height: 16),
           Text(
             'Nenhum item no pedido',
@@ -226,6 +312,7 @@ class _OrderItemCard extends StatelessWidget {
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
   final VoidCallback onRemove;
+  final VoidCallback onEdit;
 
   const _OrderItemCard({
     required this.name,
@@ -236,6 +323,7 @@ class _OrderItemCard extends StatelessWidget {
     required this.onIncrement,
     required this.onDecrement,
     required this.onRemove,
+    required this.onEdit,
   });
 
   @override
@@ -298,6 +386,7 @@ class _OrderItemCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
+                TextButton(onPressed: onEdit, child: const Text('Editar')),
               ],
             ),
           ),
@@ -307,10 +396,7 @@ class _OrderItemCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Text(
               '$quantity',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
           _QtyBtn(icon: Icons.add, onTap: onIncrement, filled: true),
@@ -324,7 +410,11 @@ class _OrderItemCard extends StatelessWidget {
                 color: Colors.red.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.delete_outline, size: 19, color: Colors.red),
+              child: const Icon(
+                Icons.delete_outline,
+                size: 19,
+                color: Colors.red,
+              ),
             ),
           ),
         ],
@@ -353,10 +443,7 @@ class _ProductImage extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.grey.shade100,
-            Colors.grey.shade200,
-          ],
+          colors: [Colors.grey.shade100, Colors.grey.shade200],
         ),
         boxShadow: [
           BoxShadow(
@@ -393,7 +480,7 @@ class _ProductImage extends StatelessWidget {
                       ),
                       value: loadingProgress.expectedTotalBytes != null
                           ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
+                                loadingProgress.expectedTotalBytes!
                           : null,
                     ),
                   ),

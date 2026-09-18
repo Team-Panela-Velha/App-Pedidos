@@ -1,4 +1,5 @@
 import 'package:app_pedidos/core/bloc/app/app_bloc.dart';
+import 'package:app_pedidos/core/provider/order_provider.dart';
 import 'package:app_pedidos/core/service/tab_service.dart';
 import 'package:app_pedidos/router.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
@@ -27,15 +28,16 @@ class _NewTabState extends State<NewTab> {
       // Chama o endpoint /tabs/start para iniciar a comanda
       final tab = await tabService.startTab(widget.tableCode);
 
-      if (mounted) {
+      if (context.mounted) {
+        context.read<OrderProvider>().resetSession();
         context.read<AppBloc>().startSession(tab.id, widget.tableCode);
         context.go(Routes.home);
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao iniciar comanda: $e')),
-        );
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao iniciar comanda: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -70,10 +72,7 @@ class _NewTabState extends State<NewTab> {
 
             Text(
               "Mesa ${widget.tableCode}",
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 12),

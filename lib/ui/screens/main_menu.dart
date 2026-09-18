@@ -26,10 +26,7 @@ class _MainMenuState extends State<MainMenu> {
             children: [
               SizedBox(width: 110, child: getSideBar(isDrawer: false)),
               Expanded(
-                child: Scaffold(
-                  appBar: MainHeader(),
-                  body: widget.child,
-                ),
+                child: Scaffold(appBar: MainHeader(), body: widget.child),
               ),
             ],
           )
@@ -43,35 +40,21 @@ class _MainMenuState extends State<MainMenu> {
   Widget getSideBar({bool isDrawer = true}) {
     // Consome o OrderProvider para exibir o badge no pedido
     final orderProvider = context.watch<OrderProvider>();
-    final pendingCount = orderProvider.pendingItems.fold(0, (sum, item) => sum + item.quantity);
+    final pendingCount = orderProvider.pendingItems.fold(
+      0,
+      (sum, item) => sum + item.quantity,
+    );
 
     final items = [
-      {
-        'icon': Icons.house,
-        'label': 'Destaques',
-        'path': Routes.home,
-      },
-      {
-        'icon': Icons.category,
-        'label': 'Categorias',
-        'path': Routes.category,
-      },
-      {
-        'icon': Icons.add_circle_outline,
-        'label': 'Criar Produto',
-        'path': Routes.createProduct,
-      },
+      {'icon': Icons.house, 'label': 'Destaques', 'path': Routes.home},
+      {'icon': Icons.category, 'label': 'Categorias', 'path': Routes.category},
       {
         'icon': Icons.receipt_long,
         'label': 'Pedido',
         'path': Routes.order,
         'badge': pendingCount > 0 ? pendingCount : null,
       },
-      {
-        'icon': Icons.shopping_cart,
-        'label': 'Carrinho',
-        'path': Routes.cart,
-      },
+      {'icon': Icons.shopping_cart, 'label': 'Carrinho', 'path': Routes.cart},
     ];
 
     final sidebarContent = Container(
@@ -90,7 +73,7 @@ class _MainMenuState extends State<MainMenu> {
             ),
             child: Column(
               children: [
-                Image.asset('images/logo2.png',height: 60),
+                Image.asset('images/logo2.png', height: 60),
                 const SizedBox(height: 10),
                 Text(
                   'Menu',

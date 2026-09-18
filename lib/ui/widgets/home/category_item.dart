@@ -1,6 +1,17 @@
 import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
+IconData categoryIcon(String name) {
+  final normalized = name.toLowerCase();
+  if (normalized.contains('poke')) return Icons.rice_bowl;
+  if (normalized.contains('sushi')) return Icons.set_meal;
+  if (normalized.contains('bebida')) return Icons.local_drink;
+  if (normalized.contains('sobremesa')) return Icons.icecream;
+  if (normalized.contains('combo')) return Icons.lunch_dining;
+  if (normalized.contains('vegano')) return Icons.eco;
+  return Icons.restaurant_menu;
+}
+
 Widget categoryItem(BuildContext context, IconData icon, String label) {
   final width = MediaQuery.of(context).size.width;
   final orientation = MediaQuery.of(context).orientation;
