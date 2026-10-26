@@ -25,7 +25,7 @@ class _NewTabState extends State<NewTab> {
 
     try {
       final tabService = TabService();
-      // Chama o endpoint /tabs/start para iniciar a comanda
+      // Chama o endpoint público de campo para iniciar a comanda.
       final tab = await tabService.startTab(widget.tableCode);
 
       if (context.mounted) {

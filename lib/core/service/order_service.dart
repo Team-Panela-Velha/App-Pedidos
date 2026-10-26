@@ -12,7 +12,7 @@ class OrderService extends BaseService {
     String? clientRequestId,
   }) async {
     final response = await _api.post(
-      '/orders',
+      '/field/orders',
       body: {
         'tabId': tabId,
         if (clientRequestId != null) 'clientRequestId': clientRequestId,
@@ -24,7 +24,7 @@ class OrderService extends BaseService {
   }
 
   Future<List<Order>> getOrdersByTab(int tabId) async {
-    final response = await _api.get('/orders/tab/$tabId');
+    final response = await _api.get('/field/orders/tab/$tabId');
     final data = getResponse(response);
     final List list =
         data['data'] ?? []; // BaseService wraps list in { "data": [...] }

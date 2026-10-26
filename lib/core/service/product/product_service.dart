@@ -7,13 +7,13 @@ class ProductService extends BaseService {
   final ApiService apiService = locator<ApiService>();
 
   Future<List<Product>> getProducts() async {
-    final response = getResponse(await apiService.get('/products'));
+    final response = getResponse(await apiService.get('/field/products'));
     return (response['data'] as List).map((e) => Product.fromJson(e)).toList();
   }
 
   Future<List<Product>> getProductsByCategory(int categoryId) async {
     final response = getResponse(
-      await apiService.get('/products/category/$categoryId?available=true'),
+      await apiService.get('/field/products/category/$categoryId?available=true'),
     );
     return (response['data'] as List).map((e) => Product.fromJson(e)).toList();
   }
@@ -29,13 +29,13 @@ class ProductService extends BaseService {
       if (categoryId != null) 'categoryId': '$categoryId',
       if (available != null) 'available': '$available',
     };
-    final uri = Uri(path: '/products/search', queryParameters: query);
+    final uri = Uri(path: '/field/products/search', queryParameters: query);
     final response = getResponse(await apiService.get(uri.toString()));
     return (response['data'] as List).map((e) => Product.fromJson(e)).toList();
   }
 
   Future<Product> getProductById(int id) async {
-    final response = getResponse(await apiService.get('/products/$id'));
+    final response = getResponse(await apiService.get('/field/products/$id'));
     return Product.fromJson(response);
   }
 

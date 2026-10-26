@@ -6,7 +6,7 @@ class TableService extends BaseService {
   final ApiService _api = ApiService();
 
   Future<TableModel> getTableByCode(String code) async {
-    final response = await _api.get('/tables/code/$code');
+    final response = await _api.get('/field/tables/code/$code');
     final data = getResponse(response);
     return TableModel.fromJson(data);
   }
