@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Flutter Demo',
+      title: 'App Pedidos',
       theme: AppTheme.lightTheme,
       routerConfig: AppRouter.router,
     );

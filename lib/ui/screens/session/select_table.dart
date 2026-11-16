@@ -66,7 +66,7 @@ class _SelectTableState extends State<SelectTable> {
               child: SizedBox(
                 width: 250,
                 child: Text(
-                  "Please enter the code to access your desired table.",
+                  "Digite o código para acessar a mesa desejada.",
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 14,
@@ -89,7 +89,7 @@ class _SelectTableState extends State<SelectTable> {
                   keyboardType: TextInputType.text, // Mudado para text caso o código tenha letras
                   onSubmitted: (_) => _entrar(),
                   decoration: InputDecoration(
-                    hintText: "Table Code",
+                    hintText: "Código da mesa",
                     hintStyle: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -111,7 +111,7 @@ class _SelectTableState extends State<SelectTable> {
 
             SimpleButton(
               onTap: _entrar, 
-              text: "Select Table",
+              text: "Selecionar mesa",
               isLoading: _isLoading,
             ),
           ],
