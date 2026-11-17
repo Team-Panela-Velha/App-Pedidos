@@ -5,7 +5,7 @@ import 'package:app_pedidos/router.dart';
 import 'package:go_router/go_router.dart';
 
 class AppBloc extends BaseBloc {
-  late GoRouter router; 
+  GoRouter get router => AppRouter.router;
 
   void startSession(int tabId, String tableCode) {
     appData.tabId = tabId;

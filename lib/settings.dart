@@ -1,3 +1,3 @@
-class Settings {
-  static String baseUrl = 'http://localhost:8081';
+﻿class Settings {
+  static String baseUrl = 'http://localhost:8080';
 }
