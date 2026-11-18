@@ -6,7 +6,9 @@ COPY pubspec.yaml pubspec.lock ./
 RUN flutter pub get
 
 COPY . .
-RUN flutter build web --release
+# Endereco da API visto pelo navegador (no stack.yml: nginx na porta 8081)
+ARG API_URL=http://localhost:8081
+RUN flutter build web --release --dart-define=API_URL=$API_URL
 
 FROM nginx:alpine
 
