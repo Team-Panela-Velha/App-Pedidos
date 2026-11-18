@@ -1,4 +1,5 @@
 import 'package:app_pedidos/core/bloc/app/app_bloc.dart';
+import 'package:app_pedidos/core/model/table_model.dart';
 import 'package:app_pedidos/core/provider/order_provider.dart';
 import 'package:app_pedidos/core/service/tab_service.dart';
 import 'package:app_pedidos/router.dart';
@@ -9,9 +10,9 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class NewTab extends StatefulWidget {
-  final String tableCode;
+  final TableModel table;
 
-  const NewTab({super.key, required this.tableCode});
+  const NewTab({super.key, required this.table});
 
   @override
   State<NewTab> createState() => _NewTabState();
@@ -26,11 +27,11 @@ class _NewTabState extends State<NewTab> {
     try {
       final tabService = TabService();
       // Chama o endpoint público de campo para iniciar a comanda.
-      final tab = await tabService.startTab(widget.tableCode);
+      final tab = await tabService.startTab(widget.table.code);
 
       if (context.mounted) {
         context.read<OrderProvider>().resetSession();
-        context.read<AppBloc>().startSession(tab.id, widget.tableCode);
+        context.read<AppBloc>().startSession(tab.id, widget.table.code, widget.table.label);
         context.go(Routes.home);
       }
     } catch (e) {
@@ -71,7 +72,7 @@ class _NewTabState extends State<NewTab> {
             const SizedBox(height: 24),
 
             Text(
-              "Mesa ${widget.tableCode}",
+              "Mesa ${widget.table.label}",
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
 

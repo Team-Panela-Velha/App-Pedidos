@@ -27,7 +27,7 @@ class _SelectTableState extends State<SelectTable> {
       final table = await tableService.getTableByCode(codigo);
       
       if (mounted) {
-        context.go(Routes.newComanda, extra: table.code);
+        context.go(Routes.newComanda, extra: table);
       }
     } catch (e) {
       if (mounted) {

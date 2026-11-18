@@ -36,7 +36,7 @@ class MainHeader extends StatelessWidget implements PreferredSizeWidget {
                         // 🔹 MESA
                         if (!compact)
                           Text(
-                            'MESA ${locator.get<AppData>().tableCode ?? ''}',
+                            'MESA ${locator.get<AppData>().tableLabel ?? locator.get<AppData>().tableCode ?? ''}',
                             style: TextStyle(
                               color: Colors.black87,
                               fontSize: 26, // ← aumentado

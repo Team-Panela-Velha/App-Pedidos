@@ -1,4 +1,5 @@
 import 'package:app_pedidos/core/model/product/product.dart';
+import 'package:app_pedidos/core/model/table_model.dart';
 import 'package:app_pedidos/ui/screens/cart/cart_screen.dart';
 import 'package:app_pedidos/ui/screens/category/category_screen.dart';
 import 'package:app_pedidos/ui/screens/category/product_results_screen.dart';
@@ -37,8 +38,8 @@ class AppRouter {
       GoRoute(
         path: Routes.newComanda,
         builder: (context, state) {
-          final tableCode = state.extra as String;
-          return NewTab(tableCode: tableCode);
+          final table = state.extra as TableModel;
+          return NewTab(table: table);
         },
       ),
       ShellRoute(
