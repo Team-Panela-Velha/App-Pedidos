@@ -1,3 +1,5 @@
+import 'package:app_pedidos/core/bloc/app/app_data.dart';
+import 'package:app_pedidos/locator.dart';
 import 'package:app_pedidos/router.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -33,8 +35,8 @@ class MainHeader extends StatelessWidget implements PreferredSizeWidget {
                       children: [
                         // 🔹 MESA
                         if (!compact)
-                          const Text(
-                            'MESA 12',
+                          Text(
+                            'MESA ${locator.get<AppData>().tableCode ?? ''}',
                             style: TextStyle(
                               color: Colors.black87,
                               fontSize: 26, // ← aumentado

@@ -11,6 +11,20 @@ class ProductService extends BaseService {
     return (response['data'] as List).map((e) => Product.fromJson(e)).toList();
   }
 
+  Future<List<Product>> getBestSellers({int limit = 5}) async {
+    final response = getResponse(
+      await apiService.get('/field/products/best-sellers?limit=$limit'),
+    );
+    return (response['data'] as List).map((e) => Product.fromJson(e)).toList();
+  }
+
+  Future<List<Product>> getBestSellerPerCategory() async {
+    final response = getResponse(
+      await apiService.get('/field/products/best-sellers/by-category'),
+    );
+    return (response['data'] as List).map((e) => Product.fromJson(e)).toList();
+  }
+
   Future<List<Product>> getProductsByCategory(int categoryId) async {
     final response = getResponse(
       await apiService.get('/field/products/category/$categoryId?available=true'),

@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:app_pedidos/core/model/category.dart';
+import 'package:app_pedidos/core/model/product/product.dart';
 import 'package:app_pedidos/core/provider/product_provider.dart';
 import 'package:app_pedidos/core/service/category/category_service.dart';
-import 'package:app_pedidos/data/mock_data.dart';
+import 'package:app_pedidos/core/service/product/product_service.dart';
 import 'package:app_pedidos/router.dart';
 import 'package:app_pedidos/theme/app_colors.dart';
 import 'package:app_pedidos/ui/widgets/home/banner_item.dart';
@@ -27,15 +28,22 @@ class _HomePageState extends State<HomePage> {
   List<Category> _categories = [];
   bool _loadingCategories = true;
   String? _categoryError;
+  List<Product> _bestSellers = [];
+  // Carrossel: o mais vendido de cada categoria
+  List<Product> _banners = [];
+
+  void _openProduct(Product product) =>
+      context.push(Routes.addProduct, extra: product);
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
     _bannerTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (!_controller.hasClients || bannersMock.isEmpty) return;
+      final count = _banners.length;
+      if (!_controller.hasClients || count == 0) return;
       _controller.animateToPage(
-        (_currentPage + 1) % bannersMock.length,
+        (_currentPage + 1) % count,
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
@@ -49,6 +57,18 @@ class _HomePageState extends State<HomePage> {
       _categoryError = null;
     });
     final products = context.read<ProductProvider>().getProducts();
+    ProductService()
+        .getBestSellers(limit: 1)
+        .then((list) {
+          if (mounted) setState(() => _bestSellers = list);
+        })
+        .catchError((_) {}); // sem mais vendido a seção some
+    ProductService()
+        .getBestSellerPerCategory()
+        .then((list) {
+          if (mounted) setState(() => _banners = list);
+        })
+        .catchError((_) {}); // sem produtos o carrossel some
     try {
       final categories = await CategoryService().getCategories();
       categories.sort((a, b) => a.name.compareTo(b.name));
@@ -76,6 +96,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final provider = context.watch<ProductProvider>();
     final products = provider.products.where((p) => p.available).toList();
+    final banners = _banners;
+    final bestSeller = _bestSellers.isEmpty ? null : _bestSellers.first;
     final size = MediaQuery.sizeOf(context);
     final width = size.width;
     final height = size.height;
@@ -91,42 +113,51 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: SizedBox(
-                  height: isLandscape ? 300 : height * 0.22,
-                  child: PageView(
-                    padEnds: false,
-                    controller: _controller,
-                    onPageChanged: (index) =>
-                        setState(() => _currentPage = index),
-                    children: [
-                      for (final banner in bannersMock)
-                        bannerItem(context, banner.title, banner.icon),
-                    ],
+              if (banners.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SizedBox(
+                    height: isLandscape ? 300 : height * 0.22,
+                    child: PageView(
+                      padEnds: false,
+                      controller: _controller,
+                      onPageChanged: (index) =>
+                          setState(() => _currentPage = index),
+                      children: [
+                        for (final product in banners)
+                          Semantics(
+                            button: true,
+                            label: 'Ver ${product.name}',
+                            child: GestureDetector(
+                              onTap: () => _openProduct(product),
+                              child: bannerItem(context, product),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (var index = 0; index < bannersMock.length; index++)
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: _currentPage == index ? 20 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                        color: _currentPage == index
-                            ? AppColors.disabled
-                            : Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.3),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var index = 0; index < banners.length; index++)
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: _currentPage == index ? 20 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: _currentPage == index
+                              ? AppColors.disabled
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.3),
+                        ),
                       ),
-                    ),
-                ],
-              ),
+                  ],
+                ),
+              ],
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
@@ -176,77 +207,89 @@ class _HomePageState extends State<HomePage> {
                       ),
               ),
               const SizedBox(height: 20),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'Mais Vendido',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              if (bestSeller != null) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Mais Vendido',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-              Container(
-                height: isLandscape ? 280 : height * 0.22,
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.secondary.withValues(alpha: 0.2),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                Semantics(
+                  button: true,
+                  label: 'Ver ${bestSeller.name}',
+                  child: GestureDetector(
+                    onTap: () => _openProduct(bestSeller),
+                    child: Container(
+                      height: isLandscape ? 280 : height * 0.22,
+                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.secondary.withValues(alpha: 0.2),
+                      ),
+                      child: Row(
                         children: [
-                          Text(
-                            'Carrinho de Cozinha',
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  bestSeller.name,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodyLarge
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textPrimary,
+                                      ),
                                 ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  bestSeller.description ?? '',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(color: AppColors.textSecondary),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'R\$ ${bestSeller.price.toStringAsFixed(2)}',
+                                  style: Theme.of(context).textTheme.bodyLarge
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Produto muito útil para sua casa',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: AppColors.textSecondary),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.star,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '4.5',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
+                          const SizedBox(width: 12),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: SizedBox.square(
+                              dimension: isLandscape ? 200 : width * 0.3,
+                              child: (bestSeller.image?.isNotEmpty ?? false)
+                                  ? Image.network(
+                                      bestSeller.image!,
+                                      webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stack) =>
+                                          const Icon(Icons.fastfood),
+                                    )
+                                  : Icon(
+                                      Icons.fastfood,
+                                      size: isLandscape ? 48 : width * 0.1,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.kitchen,
-                        size: isLandscape ? 48 : width * 0.1,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
@@ -286,8 +329,7 @@ class _HomePageState extends State<HomePage> {
                     childAspectRatio: isLandscape ? 0.8 : 0.50,
                   ),
                   itemBuilder: (context, index) => GestureDetector(
-                    onTap: () =>
-                        context.push(Routes.addProduct, extra: products[index]),
+                    onTap: () => _openProduct(products[index]),
                     child: productCard(context, products[index]),
                   ),
                 ),

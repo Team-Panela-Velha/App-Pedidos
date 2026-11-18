@@ -36,6 +36,7 @@ Widget productCard(BuildContext context, Product product) {
                 )
               : Image.network(
                   product.image!,
+                  webHtmlElementStrategy: WebHtmlElementStrategy.fallback, // hosts sem CORS: usa <img> no navegador
                   fit: BoxFit.cover,
                   width: double.infinity,
                   errorBuilder: (context, error, stack) =>
